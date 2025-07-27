@@ -1,198 +1,220 @@
-# TriggerFi - Yield-Aware Limit Orders
+# TriggerFi - Yield-Optimized Limit Orders for DeFi
 
-A DeFi dApp that enables users to create intelligent limit orders that execute based on Aave yield conditions, powered by the 1inch Limit Order Protocol.
+TriggerFi is a sophisticated DeFi protocol that enables users to create automated limit orders that execute based on external yield conditions, specifically Aave interest rates. The protocol combines the power of Aave's lending protocol with 1inch's limit order protocol to maximize capital efficiency.
 
-## Features
+## 🚀 Features
 
-- **Yield-Aware Orders**: Create limit orders that execute when specific yield thresholds are met
-- **Aave Integration**: Real-time lending rates and market data from Aave v3
-- **1inch Protocol**: Secure order execution using 1inch Limit Order Protocol
-- **Wallet Integration**: Connect with MetaMask and other wallets via RainbowKit
-- **Order Management**: Monitor and manage your active orders
-- **Mobile-Friendly**: Responsive design for all devices
+- **Yield-Aware Orders**: Create limit orders that trigger based on Aave interest rate conditions
+- **Capital Efficiency**: Keep funds earning yield in Aave while waiting for optimal swap conditions
+- **Trustless Execution**: All logic runs on-chain with atomic transactions
+- **1inch Integration**: Leverage the battle-tested 1inch limit order protocol
+- **Real-time Monitoring**: Track current rates and order status in real-time
+- **Modern Wallet Connection**: Seamless wallet integration with RainbowKit
 
-## Tech Stack
+## 🏗️ Architecture
 
-- **Frontend**: Next.js 14 with TypeScript
-- **Styling**: Tailwind CSS + shadcn/ui components
-- **Web3**: wagmi + RainbowKit for wallet connections
-- **State Management**: TanStack Query for API state
-- **UI Components**: Radix UI primitives via shadcn/ui
+### Smart Contracts
 
-## Getting Started
+1. **AaveRatePredicate** (`contracts/AaveRatePredicate.sol`)
+   - View-only contract for checking Aave interest rates
+   - Called via `staticcall` during order execution
+   - Supports both variable borrow and supply rate monitoring
+
+2. **AaveWithdrawInteraction** (`contracts/AaveWithdrawInteraction.sol`)
+   - Pre-interaction contract for withdrawing funds from Aave
+   - Called during order filling process
+   - Handles both partial and full withdrawals
+
+3. **TriggerFiOrderManager** (`contracts/TriggerFiOrderManager.sol`)
+   - Main contract for order management
+   - Coordinates between predicate and interaction contracts
+   - Handles order creation and validation
+
+### Frontend
+
+- **Next.js/React** application with TypeScript
+- **Wagmi/Viem** for Ethereum interactions
+- **RainbowKit** for modern wallet connections
+- **Tailwind CSS** for styling
+- **Radix UI** components for consistent design
+
+## 🛠️ Setup & Installation
 
 ### Prerequisites
 
-- Node.js 18+
-- npm or yarn
-- MetaMask or compatible Web3 wallet
+- Node.js 18+ 
+- pnpm (recommended) or npm
+- Hardhat for smart contract development
 
 ### Installation
 
-1. Clone the repository:
-\`\`\`bash
-git clone https://github.com/your-username/triggerfi-dapp.git
-cd triggerfi-dapp
-\`\`\`
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd TriggerFi
+   ```
 
-2. Install dependencies:
-\`\`\`bash
-npm install
-\`\`\`
+2. **Install dependencies**
+   ```bash
+   pnpm install
+   ```
 
-3. Set up environment variables:
-\`\`\`bash
-cp .env.example .env.local
-\`\`\`
+3. **Set up environment variables**
+   
+   Create a `.env.local` file with the following variables:
+   ```env
+   # WalletConnect Project ID (required for RainbowKit)
+   # Get one at https://cloud.walletconnect.com/
+   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_walletconnect_project_id_here
+   
+   # RPC URLs for different networks
+   MAINNET_RPC_URL=https://eth-mainnet.alchemyapi.io/v2/your_api_key
+   SEPOLIA_RPC_URL=https://eth-sepolia.alchemyapi.io/v2/your_api_key
+   POLYGON_RPC_URL=https://polygon-mainnet.alchemyapi.io/v2/your_api_key
+   
+   # Private key for contract deployment (optional)
+   PRIVATE_KEY=your_private_key_here
+   
+   # Etherscan API key for contract verification
+   ETHERSCAN_API_KEY=your_etherscan_api_key_here
+   POLYGONSCAN_API_KEY=your_polygonscan_api_key_here
+   ```
 
-Add your WalletConnect Project ID:
-\`\`\`
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id_here
-\`\`\`
+4. **Start the development server**
+   ```bash
+   pnpm run dev
+   ```
 
-4. Run the development server:
-\`\`\`bash
-npm run dev
-\`\`\`
+### RainbowKit Setup
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+The project uses RainbowKit for wallet connections, which provides:
 
-## Project Structure
+- **Modern UI**: Beautiful, accessible wallet connection interface
+- **Multi-wallet Support**: MetaMask, WalletConnect, Coinbase Wallet, and more
+- **Network Switching**: Easy switching between Ethereum, Polygon, and other networks
+- **Mobile Support**: QR code scanning for mobile wallets
 
-\`\`\`
-├── app/                    # Next.js app directory
-│   ├── create-order/      # Order creation page
-│   ├── dashboard/         # Orders dashboard
-│   └── page.tsx          # Landing page
-├── components/            # Reusable components
-│   ├── ui/               # shadcn/ui components
-│   ├── navbar.tsx        # Navigation component
-│   ├── token-selector.tsx # Token selection component
-│   ├── yield-display.tsx  # Aave yield data display
-│   └── order-preview.tsx  # Order preview component
-├── lib/                  # Utility functions
-│   └── wagmi.ts         # Wagmi configuration
-└── hooks/               # Custom React hooks
-\`\`\`
+To get your WalletConnect Project ID:
+1. Visit [WalletConnect Cloud](https://cloud.walletconnect.com/)
+2. Create a new project
+3. Copy the Project ID to your environment variables
 
-## Key Components
+## 📝 Smart Contract Development
 
-### Create Order Page
-- Token selection for maker/taker assets
-- Amount inputs with validation
-- Yield threshold configuration
-- Aave market data integration
-- EIP-712 order signing (mock implementation)
-- Order preview with JSON display
+### Compile Contracts
+```bash
+npx hardhat compile
+```
 
-### Dashboard Page
-- Order history table with status tracking
-- Order details modal with full predicate logic
-- Cancel order functionality for open orders
-- Real-time order status updates
+### Run Tests
+```bash
+npx hardhat test
+```
 
-### Yield Display Component
-- Live Aave lending rates
-- Market utilization data
-- Supply/borrow APY with trend indicators
-- Total supply and borrow amounts
+### Deploy Contracts
+```bash
+npx hardhat run scripts/deploy.ts --network sepolia
+```
 
-## API Integration Points
+### Verify Contracts
+```bash
+npx hardhat verify --network mainnet <contract_address> <constructor_args>
+```
 
-### Aave Integration
-Currently using mock data. To integrate with real Aave data:
+## 🔧 Usage
 
-\`\`\`typescript
-// Replace mock data in components/yield-display.tsx
-const fetchAaveData = async (asset: string) => {
-  const response = await fetch(`https://aave-api-v2.aave.com/data/markets-data`)
-  const data = await response.json()
-  return data.reserves.find(reserve => reserve.symbol === asset)
-}
-\`\`\`
+### Creating a Yield-Optimized Order
+
+1. **Connect Wallet**: Use the RainbowKit connect button in the navbar
+2. **Navigate to Create Order**: Click "Create Order" from the main page
+3. **Configure Order**:
+   - Select the asset to monitor (e.g., USDC, WETH)
+   - Choose target token for the swap
+   - Set rate threshold (e.g., 5% APY)
+   - Configure withdrawal amount
+   - Set minimum output amount
+4. **Set Conditions**:
+   - Choose between variable borrow or supply rate monitoring
+   - Set whether to trigger when rate is above or below threshold
+5. **Create Order**: Sign the transaction to create your order
+
+### Order Execution Flow
+
+1. **Condition Monitoring**: The predicate contract continuously monitors Aave rates
+2. **Rate Check**: When a taker attempts to fill the order, the predicate is called
+3. **Condition Validation**: If conditions are met, execution continues
+4. **Fund Withdrawal**: The pre-interaction contract withdraws funds from Aave
+5. **Swap Execution**: The 1inch protocol executes the swap atomically
+
+## 📊 Technical Details
+
+### Rate Format
+- Aave rates are returned in "ray" format (27 decimals)
+- Conversion: `rate_percentage = ray_rate / 10^25`
+- Example: `0.045 * 10^27 = 45000000000000000000000000`
 
 ### 1inch Integration
-Order submission placeholder in `app/create-order/page.tsx`:
+- Orders use EIP-712 signing for security
+- Predicate and pre-interaction data are encoded as bytes
+- Orders are submitted to 1inch orderbook via REST API
 
-\`\`\`typescript
-// TODO: Implement actual 1inch API integration
-const submitToOneInch = async (signedOrder: any) => {
-  const response = await fetch('https://api.1inch.io/v5.0/1/limit-order', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(signedOrder)
-  })
-  return response.json()
-}
-\`\`\`
+### Aave Integration
+- Supports Aave V3 protocol
+- Monitors both supply and variable borrow rates
+- Handles aToken balances and withdrawals
 
-## Development Notes
+## 🧪 Testing
 
-### TODOs for Production
+### Unit Tests
+```bash
+npx hardhat test
+```
 
-1. **EIP-712 Signing**: Implement real order signing with user's private key
-2. **1inch Protocol Utils**: Integrate `@1inch/limit-order-protocol-utils` for proper order encoding
-3. **Aave API**: Replace mock data with real Aave v3 API calls
-4. **Order Submission**: Implement actual 1inch orderbook submission
-5. **Error Handling**: Add comprehensive error handling for Web3 operations
-6. **Gas Estimation**: Add gas estimation for order operations
-7. **Network Detection**: Implement proper network switching and validation
+### Integration Tests
+```bash
+npx hardhat test --grep "Integration"
+```
 
-### Mock Implementations
+### Fork Testing
+```bash
+npx hardhat test --network hardhat
+```
 
-The following features use mock data for demonstration:
-- Aave yield rates (components/yield-display.tsx)
-- Order signing (app/create-order/page.tsx)
-- Order history (app/dashboard/page.tsx)
-- 1inch API submission
+## 🔒 Security Considerations
 
-### Environment Variables
+- **Predicate Contracts**: View-only, called via `staticcall`
+- **Access Control**: Owner-only functions for emergency operations
+- **Reentrancy Protection**: All external calls are protected
+- **Input Validation**: Comprehensive parameter validation
+- **Atomic Execution**: All operations revert on failure
 
-Create a `.env.local` file with:
-\`\`\`
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_walletconnect_project_id
-NEXT_PUBLIC_AAVE_API_URL=https://aave-api-v2.aave.com
-NEXT_PUBLIC_ONEINCH_API_URL=https://api.1inch.io/v5.0/1
-\`\`\`
+## 📈 Roadmap
 
-## Deployment
+- [ ] Multi-chain support (Polygon, Optimism, Arbitrum)
+- [ ] Advanced rate conditions (compound rates, moving averages)
+- [ ] Order templates and presets
+- [ ] Mobile application
+- [ ] API for third-party integrations
+- [ ] Governance token and DAO
 
-### Vercel Deployment
-
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Add environment variables in Vercel dashboard
-4. Deploy automatically on push to main branch
-
-### Build for Production
-
-\`\`\`bash
-npm run build
-npm start
-\`\`\`
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Submit a pull request
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Hackathon Ready
+## 🆘 Support
 
-This implementation provides a complete, functional UI skeleton perfect for hackathon demonstrations:
+- **Documentation**: [docs.triggerfi.com](https://docs.triggerfi.com)
+- **Discord**: [discord.gg/triggerfi](https://discord.gg/triggerfi)
+- **Twitter**: [@TriggerFi](https://twitter.com/TriggerFi)
 
-- ✅ Wallet connection with RainbowKit
-- ✅ Modern, responsive UI with shadcn/ui
-- ✅ Complete order creation flow
-- ✅ Order management dashboard
-- ✅ Mock Aave yield data integration
-- ✅ EIP-712 order preview (mock)
-- ✅ Clear TODOs for backend integration
+## ⚠️ Disclaimer
 
-The app is designed to showcase the concept effectively while providing clear integration points for production-ready features.
+This software is provided "as is" without warranty. Users should conduct their own research and due diligence before using this protocol. DeFi protocols carry inherent risks including but not limited to smart contract risk, market risk, and impermanent loss.

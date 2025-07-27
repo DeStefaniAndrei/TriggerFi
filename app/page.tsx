@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowRight, TrendingUp, Shield, Zap } from "lucide-react"
-import Link from "next/link"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowRight, TrendingUp, Shield, Zap } from "lucide-react";
 
-export default function HomePage() {
+export default function Home() {
   return (
     <div className="space-y-16">
       {/* Hero Section */}
@@ -20,7 +20,7 @@ export default function HomePage() {
             automated precision.
           </p>
         </div>
-
+        
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link href="/create-order">
             <Button size="lg" className="text-lg px-8">
@@ -120,5 +120,5 @@ export default function HomePage() {
         </div>
       </section>
     </div>
-  )
+  );
 }

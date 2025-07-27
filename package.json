@@ -37,6 +37,7 @@
     "@radix-ui/react-toggle": "1.1.1",
     "@radix-ui/react-toggle-group": "1.1.1",
     "@radix-ui/react-tooltip": "1.1.6",
+    "@rainbow-me/rainbowkit": "^2.2.8",
     "@tanstack/react-query": "latest",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
@@ -64,9 +65,15 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@1inch/limit-order-protocol-utils": "^4.0.1",
+    "@aave/core-v3": "^1.19.3",
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "@openzeppelin/contracts": "^5.4.0",
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "ethers": "^6.15.0",
+    "hardhat": "^2.26.1",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
