@@ -84,7 +84,7 @@ contract AaveRatePredicate {
     }
     
     /**
-     * The supply rate is the interest rate given to the lenders, whilst the variable borrow rate is the rate paid by the lenders
+     * The supply rate is the interest rate given to the lenders, whilst the variable borrow rate is the rate paid by the borrowers
      * @dev Get the current supply rate for an asset
      * @param asset The asset address
      * @return uint256 The current supply rate in ray format (27 decimals)
