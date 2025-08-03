@@ -8,12 +8,13 @@ const SEPOLIA_RPC_URL = "https://sepolia.infura.io/v3/fbb4fa2b1b734058b1ef4b6a3b
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.19",
+    version: "0.8.20",
     settings: {
       optimizer: {
         enabled: true,
         runs: 200,
       },
+      viaIR: true,
     },
   },
   networks: {

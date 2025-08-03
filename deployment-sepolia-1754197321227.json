@@ -1,0 +1,22 @@
+{
+  "network": "sepolia",
+  "deployedAt": "2025-08-03T05:02:01.226Z",
+  "contracts": {
+    "dynamicAPIPredicate": "0xd378Fbce97cD181Cd7A7EcCe32571f1a37E226ed"
+  },
+  "configuration": {
+    "chainlinkFunctionsRouter": "0xb83E47C2bC239B3bf370bc41e1459A34b41238D0",
+    "donId": "0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000",
+    "subscriptionId": 5385,
+    "keeper": "0x93d43c27746D76e7606C55493A757127b33D7763",
+    "treasury": "0x93d43c27746D76e7606C55493A757127b33D7763",
+    "usdc": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
+  },
+  "nextSteps": {
+    "1": "Add contract as consumer to Chainlink subscription",
+    "2": "Update frontend with contract address",
+    "3": "Set up Firebase for order storage",
+    "4": "Run keeper service for predicate updates",
+    "5": "Deploy taker bot for order execution"
+  }
+}

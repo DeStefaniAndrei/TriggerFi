@@ -108,6 +108,40 @@ These indicators suggest likely JPY depreciation, so automatic conversion minimi
 - **Response Path**: JSON path to value (e.g., `data.inflation_rate`)
 - **Comparison**: >, <, or = with threshold value
 - **Logic**: AND/OR for multiple conditions
+- **Data Type**: Currently only supports int256 (integers) for comparison values
+
+### Current Limitations - Integer Values Only
+- **MVP Limitation**: External API data must be numeric (int256) for comparisons
+- **Examples of supported data**:
+  - Inflation rate: 5.2 → 52 (multiply by 10 for decimal precision)
+  - Temperature: 75 (Fahrenheit)
+  - Price: 1850 (USD cents for $18.50)
+  - Percentage: 15 (for 15%)
+- **Examples of unsupported data (Post-MVP)**:
+  - Strings: "bullish", "active", "high risk"
+  - Booleans: true/false (must use 1/0 instead)
+  - Complex objects or arrays
+
+### Logic Operator Limitations
+- **Current MVP**: Can only use ALL AND or ALL OR logic
+- **Supported logic patterns**:
+  - `A AND B AND C` (all conditions must be true)
+  - `A OR B OR C` (any condition can be true)
+- **NOT supported (Post-MVP)**:
+  - Mixed operators: `A AND (B OR C)`
+  - Nested groups: `(A AND B) OR (C AND D)`
+  - NOT operators: `A AND NOT B`
+- **Why this limitation**: Simplifies Chainlink Function generation and predicate evaluation
+- **Post-hackathon**: Will implement expression tree parser for complex logic
+
+### Post-MVP Enhancements
+- **String Comparisons**: Support for equality checks on text values
+  - Example: "status == 'active'"
+  - Example: "alert_level == 'high'"
+- **Boolean Support**: Native true/false handling
+- **Enum Support**: Predefined value sets
+- **Range Checks**: "value BETWEEN 10 AND 20"
+- **Pattern Matching**: Basic regex for strings
 
 ### API Response Parsing
 - Supports dot notation: `data.rates.inflation`
@@ -192,6 +226,7 @@ Implementing dynamic API integration with Chainlink Functions for real-world tri
 - Supports HTTP requests with auth
 - Consider response size limits
 - Plan for API rate limiting
+- **IMPORTANT**: When deploying to mainnet, update all Chainlink price feed addresses in contracts
 
 ### MVP Priorities
 1. Single API condition support first
@@ -300,3 +335,40 @@ function getUpdateFees(bytes32 predicateId) external view returns (uint256) {
 - **For Makers**: API keys secure + automatic monitoring
 - **For TriggerFi**: Revenue model that scales with usage
 - **Incentive Alignment**: Quick fills = lower fees for takers
+## Deployment
+- Firebase Hosting can be used for website deployment
+
+## Current Deployed Contracts (Sepolia Testnet)
+
+### Smart Contracts
+- **DynamicAPIPredicate**: `0xd378Fbce97cD181Cd7A7EcCe32571f1a37E226ed`
+  - Manages predicates for Chainlink Functions
+  - Stores API conditions and results
+  - Tracks update counts for fee calculation
+  
+- **DynamicAmountGetter**: `0x5b02226E1820E80F6212f31Fe51Cf01A7B3D10b2`
+  - Implements 1inch IAmountGetter interface
+  - Calculates dynamic pricing based on gas costs and keeper fees
+  - Integrates with Chainlink price feeds
+
+### Chainlink Infrastructure
+- **Functions Router**: `0xb83E47C2bC239B3bf370bc41e1459A34b41238D0`
+- **DON ID**: `0x66756e2d657468657265756d2d7365706f6c69612d3100000000000000000000`
+- **Subscription ID**: 5385
+
+### Price Feed Addresses (Sepolia)
+- **ETH/USD**: `0x694AA1769357215DE4FAC081bf1f309aDC325306`
+- **BTC/USD**: `0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43`
+- **JPY/USD**: `0x8A6af2B75F23831ADc973ce6288e5329F63D86c6`
+- **USDC/USD**: Hardcoded as 1:1 (no feed on Sepolia)
+
+### Token Addresses (Sepolia)
+- **WETH**: `0xfff9976782d46cc05630d1f6ebab18b2324d6b14`
+- **USDC**: `0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8`
+- **DAI**: `0xFF34B3d4Aee8ddCd6F9AFFFB6Fe49bD371b8a357`
+- **JPYC**: `0x431D5dfF03120AFA4bDf332c61A6e1766eF37BDB`
+
+### Important Notes
+- **Keeper Address**: `0x93d43c27746D76e7606C55493A757127b33D7763`
+- **Update these addresses when deploying new versions**
+- **All addresses must be updated when moving to mainnet**

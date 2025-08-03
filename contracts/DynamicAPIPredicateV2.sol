@@ -1,32 +1,16 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.19;
 
-// No need for 1inch order imports since we're not implementing isValidSignature
-//For Andrei: This interface is from the Chainlink Functions contract. 
-
-interface IChainlinkFunctions {
-    function executeRequest(
-        string memory source,
-        bytes memory encryptedSecretsUrls,
-        uint8 donHostedSecretsSlotID,
-        uint64 donHostedSecretsVersion,
-        string[] memory args,
-        bytes[] memory bytesArgs,
-        uint64 subscriptionId,
-        uint32 gasLimit,
-        bytes32 donId
-    ) external returns (bytes32 requestId);
-    
-    function lastResponse() external view returns (bytes memory);
-    function lastError() external view returns (bytes memory);
-}
+import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/FunctionsClient.sol";
+import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/libraries/FunctionsRequest.sol";
 
 /**
- * @title DynamicAPIPredicate
- * @notice Allows users to create limit orders with custom API conditions
- * @dev Uses Chainlink Functions to check real-world data from any API
+ * @title DynamicAPIPredicateV2
+ * @notice Properly integrated version with Chainlink Functions inheritance
+ * @dev Inherits from FunctionsClient for proper Chainlink integration
  */
-contract DynamicAPIPredicate {
+contract DynamicAPIPredicateV2 is FunctionsClient {
+    using FunctionsRequest for FunctionsRequest.Request;
     
     struct APICondition {
         string endpoint;      // API URL
@@ -40,15 +24,14 @@ contract DynamicAPIPredicate {
         address maker;              // Order maker address
         APICondition[] conditions;  // Array of API conditions
         bool useAND;               // true for AND logic, false for OR
-        bytes chainlinkFunction;   // Generated Chainlink Function code
+        string chainlinkFunction;   // Generated Chainlink Function code
         uint256 lastCheckTime;     // Last time conditions were checked
         bool lastResult;           // Last check result
     }
     
     // Chainlink Functions configuration
-    IChainlinkFunctions public chainlinkFunctions;
     uint64 public subscriptionId;
-    uint32 public gasLimit = 300000;
+    uint32 public gasLimit = 300_000;
     bytes32 public donId;
     
     // Mapping from predicate ID to configuration
@@ -68,15 +51,29 @@ contract DynamicAPIPredicate {
     event PredicateCreated(bytes32 indexed predicateId, address indexed maker, uint256 conditionCount);
     event PredicateChecked(bytes32 indexed predicateId, bool result);
     event FeesCollected(bytes32 indexed predicateId, uint256 amount, address payer);
+    event RequestSent(bytes32 indexed requestId, bytes32 indexed predicateId);
+    event RequestFulfilled(bytes32 indexed requestId, bytes32 indexed predicateId, bool result);
+    event RequestFailed(bytes32 indexed requestId, bytes32 indexed predicateId, bytes error);
+    
+    // Errors
+    error UnexpectedRequestID(bytes32 requestId);
+    error PredicateNotFound(bytes32 predicateId);
+    error OnlyKeeperAllowed();
+    error NoConditionsProvided();
+    error TooManyConditions();
+    
+    modifier onlyKeeper() {
+        if (msg.sender != keeper) revert OnlyKeeperAllowed();
+        _;
+    }
     
     constructor(
-        address _chainlinkFunctions,
+        address _router,
         uint64 _subscriptionId,
         bytes32 _donId,
         address _keeper,
         address _treasury
-    ) {
-        chainlinkFunctions = IChainlinkFunctions(_chainlinkFunctions);
+    ) FunctionsClient(_router) {
         subscriptionId = _subscriptionId;
         donId = _donId;
         keeper = _keeper;
@@ -93,10 +90,10 @@ contract DynamicAPIPredicate {
     function createPredicate(
         APICondition[] memory conditions,
         bool useAND,
-        bytes memory chainlinkFunctionCode
+        string memory chainlinkFunctionCode
     ) external returns (bytes32 predicateId) {
-        require(conditions.length > 0, "At least one condition required");
-        require(conditions.length <= 10, "Maximum 10 conditions allowed");
+        if (conditions.length == 0) revert NoConditionsProvided();
+        if (conditions.length > 10) revert TooManyConditions();
         
         // Generate unique predicate ID
         predicateId = keccak256(abi.encodePacked(
@@ -124,21 +121,12 @@ contract DynamicAPIPredicate {
      * @dev This is called by the 1inch router via arbitraryStaticCall
      * @param predicateId The predicate to check
      * @return result 1 if conditions are met, 0 otherwise
-     * 
-     * ARCHITECTURE NOTE:
-     * Since this is a view function (staticcall), it cannot:
-     * - Make external API calls
-     * - Call Chainlink Functions
-     * - Modify state
-     * 
-     * Solution: Off-chain monitoring updates the state, this function reads it
      */
     function checkCondition(bytes32 predicateId) external view returns (uint256) {
         PredicateConfig storage config = predicates[predicateId];
-        require(config.maker != address(0), "Predicate not found");
+        if (config.maker == address(0)) revert PredicateNotFound(predicateId);
         
         // Return the last known result from off-chain checks
-        // The checkConditions() function must be called periodically to update this
         return config.lastResult ? 1 : 0;
     }
     
@@ -156,35 +144,19 @@ contract DynamicAPIPredicate {
      * @param predicateId The predicate to check
      * @dev Only keeper can call this function
      */
-    function checkConditions(bytes32 predicateId) external {
-        require(msg.sender == keeper, "Only keeper can check conditions");
+    function checkConditions(bytes32 predicateId) external onlyKeeper returns (bytes32 requestId) {
         PredicateConfig storage config = predicates[predicateId];
-        require(config.maker != address(0), "Predicate not found");
+        if (config.maker == address(0)) revert PredicateNotFound(predicateId);
         
-        // Build arguments for Chainlink Function
-        string[] memory args = new string[](config.conditions.length * 5 + 1);
+        // Build Chainlink Functions request
+        FunctionsRequest.Request memory req;
+        req.initializeRequestForInlineJavaScript(config.chainlinkFunction);
         
-        // Add logic operator
-        args[0] = config.useAND ? "AND" : "OR";
+        // No args needed - everything is in the JavaScript code
         
-        // Add conditions
-        for (uint i = 0; i < config.conditions.length; i++) {
-            uint baseIndex = i * 5 + 1;
-            args[baseIndex] = config.conditions[i].endpoint;
-            args[baseIndex + 1] = config.conditions[i].authType;
-            args[baseIndex + 2] = config.conditions[i].jsonPath;
-            args[baseIndex + 3] = _operatorToString(config.conditions[i].operator);
-            args[baseIndex + 4] = _int256ToString(config.conditions[i].threshold);
-        }
-        
-        // Execute Chainlink Function
-        bytes32 requestId = chainlinkFunctions.executeRequest(
-            string(config.chainlinkFunction),
-            "", // No encrypted secrets for MVP
-            0,  // No hosted secrets
-            0,  // No version
-            args,
-            new bytes[](0), // No bytes args
+        // Send the request
+        requestId = _sendRequest(
+            req.encodeCBOR(),
             subscriptionId,
             gasLimit,
             donId
@@ -198,29 +170,32 @@ contract DynamicAPIPredicate {
         
         // Update last check time
         config.lastCheckTime = block.timestamp;
+        
+        emit RequestSent(requestId, predicateId);
     }
     
     /**
      * @notice Callback function for Chainlink Functions
      * @dev This is called by Chainlink when API check completes
+     * @param requestId The request ID from Chainlink
+     * @param response The response data
+     * @param err Any error that occurred
      */
     function fulfillRequest(
         bytes32 requestId,
         bytes memory response,
         bytes memory err
-    ) external {
-        // TODO: In production, verify caller is Chainlink router
-        // require(msg.sender == address(chainlinkFunctions), "Only Chainlink can fulfill");
-        
+    ) internal override {
         // Get predicate ID from request mapping
         bytes32 predicateId = requestToPredicate[requestId];
-        require(predicateId != bytes32(0), "Unknown request ID");
+        if (predicateId == bytes32(0)) revert UnexpectedRequestID(requestId);
         
         PredicateConfig storage config = predicates[predicateId];
         
         // Handle errors
         if (err.length > 0) {
             // Keep last result on error
+            emit RequestFailed(requestId, predicateId, err);
             emit PredicateChecked(predicateId, config.lastResult);
             return;
         }
@@ -232,6 +207,7 @@ contract DynamicAPIPredicate {
         // Update predicate result
         config.lastResult = result;
         
+        emit RequestFulfilled(requestId, predicateId, result);
         emit PredicateChecked(predicateId, result);
     }
     
@@ -260,38 +236,69 @@ contract DynamicAPIPredicate {
         emit FeesCollected(predicateId, feesOwed, msg.sender);
     }
     
-    // Helper functions
-    function _operatorToString(uint8 operator) private pure returns (string memory) {
-        if (operator == 0) return ">";
-        if (operator == 1) return "<";
-        return "=";
+    /**
+     * @notice Get predicate configuration
+     * @param predicateId The predicate to query
+     * @return maker The address that created the predicate
+     * @return useAND Whether AND logic is used
+     * @return lastCheckTime When the predicate was last checked
+     * @return lastResult The last check result
+     * @return conditionCount Number of conditions
+     */
+    function getPredicateInfo(bytes32 predicateId) external view returns (
+        address maker,
+        bool useAND,
+        uint256 lastCheckTime,
+        bool lastResult,
+        uint256 conditionCount
+    ) {
+        PredicateConfig storage config = predicates[predicateId];
+        return (
+            config.maker,
+            config.useAND,
+            config.lastCheckTime,
+            config.lastResult,
+            config.conditions.length
+        );
+    }
+}
+
+/**
+ * @title DynamicAPIPredicateV2Test
+ * @notice Test version for Sepolia
+ */
+contract DynamicAPIPredicateV2Test is DynamicAPIPredicateV2 {
+    
+    constructor(
+        address _router,
+        uint64 _subscriptionId,
+        bytes32 _donId,
+        address _keeper,
+        address _treasury
+    ) DynamicAPIPredicateV2(
+        _router,
+        _subscriptionId,
+        _donId,
+        _keeper,
+        _treasury
+    ) {}
+    
+    /**
+     * @notice Test version - no fees required
+     */
+    function collectFees(bytes32 predicateId) external payable override {
+        collectedFees[predicateId] = updateCount[predicateId];
+        emit FeesCollected(predicateId, 0, msg.sender);
     }
     
-    function _int256ToString(int256 value) private pure returns (string memory) {
-        // Simplified int to string conversion
-        if (value == 0) return "0";
+    /**
+     * @notice Helper function for testing - manually set predicate result
+     */
+    function setTestResult(bytes32 predicateId, bool result) external onlyKeeper {
+        PredicateConfig storage config = predicates[predicateId];
+        require(config.maker != address(0), "Predicate not found");
         
-        bool negative = value < 0;
-        uint256 absValue = negative ? uint256(-value) : uint256(value);
-        
-        uint256 temp = absValue;
-        uint256 digits;
-        while (temp != 0) {
-            digits++;
-            temp /= 10;
-        }
-        
-        bytes memory buffer = new bytes(negative ? digits + 1 : digits);
-        if (negative) {
-            buffer[0] = "-";
-        }
-        
-        while (absValue != 0) {
-            digits -= 1;
-            buffer[negative ? digits + 1 : digits] = bytes1(uint8(48 + absValue % 10));
-            absValue /= 10;
-        }
-        
-        return string(buffer);
+        config.lastResult = result;
+        emit PredicateChecked(predicateId, result);
     }
 }

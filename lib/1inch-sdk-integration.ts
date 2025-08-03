@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import { createArbitraryStaticCallPredicate } from "./predicate-encoder";
 
 // 1inch Limit Order Protocol interfaces
 export interface LimitOrder {
@@ -65,6 +66,8 @@ export interface DynamicOrderConfig {
   takingAmount: string;
   predicateContract: string;
   predicateId: string;
+  useDynamicPricing?: boolean;
+  dynamicAmountGetterAddress?: string;
 }
 
 /**
@@ -289,6 +292,112 @@ export async function getOrderStatus(
  * @param predicateId The predicate ID for fee collection
  * @param value ETH value to send (if needed for the swap)
  */
+/**
+ * Create a dynamic order with API-based predicate
+ */
+export async function createDynamicOrder(config: DynamicOrderConfig) {
+  const {
+    makerAsset,
+    takerAsset,
+    makingAmount,
+    takingAmount,
+    predicateContract,
+    predicateId,
+    useDynamicPricing,
+    dynamicAmountGetterAddress
+  } = config;
+
+  // Encode the predicate call
+  const predicateCalldata = ethers.concat([
+    "0x489a775a", // checkCondition(bytes32) selector
+    predicateId
+  ]);
+
+  // Create the predicate using arbitraryStaticCall
+  const { predicate } = createArbitraryStaticCallPredicate(
+    predicateContract,
+    predicateCalldata
+  );
+
+  // Prepare amount getter data if dynamic pricing is enabled
+  let makingAmountData = "0x";
+  let takingAmountData = "0x";
+  
+  if (useDynamicPricing && dynamicAmountGetterAddress) {
+    // Import the encoder
+    const { encodeDynamicAmountGetter, getTokenByAddress } = await import('./amount-getter-encoder');
+    
+    // Get token symbols from addresses
+    const makerToken = getTokenByAddress(makerAsset);
+    const takerToken = getTokenByAddress(takerAsset);
+    
+    if (!makerToken || !takerToken) {
+      throw new Error("Unsupported tokens for dynamic pricing");
+    }
+    
+    const amountGetterData = encodeDynamicAmountGetter(
+      dynamicAmountGetterAddress,
+      predicateId,
+      makerToken.symbol,
+      takerToken.symbol
+    );
+    
+    makingAmountData = amountGetterData.makingAmountData;
+    takingAmountData = amountGetterData.takingAmountData;
+  }
+
+  // Create the order structure
+  const order = {
+    salt: ethers.hexlify(ethers.randomBytes(32)),
+    makerAsset,
+    takerAsset,
+    maker: "0x0000000000000000000000000000000000000000", // Will be filled by caller
+    receiver: "0x0000000000000000000000000000000000000000", // Maker receives
+    allowedSender: "0x0000000000000000000000000000000000000000", // Anyone can fill
+    makingAmount,
+    takingAmount,
+    offsets: "0x",
+    interactions: "0x",
+    predicate: predicate,
+    permit: "0x",
+    getMakingAmount: makingAmountData,
+    getTakingAmount: takingAmountData,
+    preInteraction: "0x",
+    postInteraction: "0x"
+  };
+
+  // Return order data for signing
+  return {
+    order,
+    domain: {
+      name: "1inch Limit Order Protocol",
+      version: "4",
+      chainId: 1, // Will be replaced with actual chainId
+      verifyingContract: getLimitOrderProtocolAddress(1)
+    },
+    types: {
+      Order: [
+        { name: "salt", type: "bytes32" },
+        { name: "makerAsset", type: "address" },
+        { name: "takerAsset", type: "address" },
+        { name: "maker", type: "address" },
+        { name: "receiver", type: "address" },
+        { name: "allowedSender", type: "address" },
+        { name: "makingAmount", type: "uint256" },
+        { name: "takingAmount", type: "uint256" },
+        { name: "offsets", type: "bytes" },
+        { name: "interactions", type: "bytes" },
+        { name: "predicate", type: "bytes" },
+        { name: "permit", type: "bytes" },
+        { name: "getMakingAmount", type: "bytes" },
+        { name: "getTakingAmount", type: "bytes" },
+        { name: "preInteraction", type: "bytes" },
+        { name: "postInteraction", type: "bytes" }
+      ]
+    }
+  };
+}
+
 export async function fillOrder(
   order: LimitOrder,
   signature: string,

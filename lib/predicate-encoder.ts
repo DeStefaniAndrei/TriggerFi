@@ -1,4 +1,4 @@
-import { AbiCoder, concat, getBytes, id, zeroPadValue, hexDataSlice } from "ethers";
+import { AbiCoder, concat, getBytes, id, zeroPadValue, dataSlice } from "ethers";
 
 /**
  * IMPORTANT ARCHITECTURE NOTE:
@@ -14,7 +14,7 @@ import { AbiCoder, concat, getBytes, id, zeroPadValue, hexDataSlice } from "ethe
  * 
  * Based on mentor's example:
  * - Use arbitraryStaticCall to call view functions
- * - Strip 0x prefix from encoded params using hexDataSlice(params, 2)
+ * - Strip 0x prefix from encoded params using dataSlice(params, 2)
  * - Predicates return uint256 (not bool)
  */
 
@@ -30,7 +30,7 @@ export function encodeGt(threshold: string, staticCall: string): string {
         [threshold, staticCall]
     );
     // NOTE: Following mentor's example - strip 0x prefix from params
-    return concat([selector, hexDataSlice(params, 2)]);
+    return concat([selector, dataSlice(params, 2)]);
 }
 
 /**
@@ -45,7 +45,7 @@ export function encodeLt(threshold: string, staticCall: string): string {
         [threshold, staticCall]
     );
     // NOTE: Following mentor's example - strip 0x prefix from params
-    return concat([selector, hexDataSlice(params, 2)]);
+    return concat([selector, dataSlice(params, 2)]);
 }
 
 /**
@@ -60,7 +60,7 @@ export function encodeEq(value: string, staticCall: string): string {
         [value, staticCall]
     );
     // NOTE: Following mentor's example - strip 0x prefix from params
-    return concat([selector, hexDataSlice(params, 2)]);
+    return concat([selector, dataSlice(params, 2)]);
 }
 
 /**
@@ -83,7 +83,7 @@ export function encodeOr(conditions: string[]): string {
         [packedOffsets, dataBlob]
     );
     // NOTE: Following mentor's example - strip 0x prefix from params
-    return concat([selector, hexDataSlice(params, 2)]);
+    return concat([selector, dataSlice(params, 2)]);
 }
 
 /**
@@ -106,7 +106,7 @@ export function encodeAnd(conditions: string[]): string {
         [packedOffsets, dataBlob]
     );
     // NOTE: Following mentor's example - strip 0x prefix from params
-    return concat([selector, hexDataSlice(params, 2)]);
+    return concat([selector, dataSlice(params, 2)]);
 }
 
 /**
@@ -121,7 +121,7 @@ export function encodeArbitraryStaticCall(target: string, calldata: string): str
         [target, calldata]
     );
     // NOTE: Following mentor's example - strip 0x prefix from params
-    return concat([selector, hexDataSlice(params, 2)]);
+    return concat([selector, dataSlice(params, 2)]);
 }
 
 /**
@@ -143,6 +143,21 @@ export function encodeAPIConditionCheck(
     
     // Wrap in arbitraryStaticCall
     return encodeArbitraryStaticCall(predicateContract, calldata);
+}
+
+/**
+ * Creates an arbitrary static call predicate
+ * @param target The contract address to call
+ * @param calldata The calldata for the call
+ * @returns Object with predicate bytes
+ */
+export function createArbitraryStaticCallPredicate(
+    target: string,
+    calldata: string
+): { predicate: string } {
+    return {
+        predicate: encodeArbitraryStaticCall(target, calldata)
+    };
 }
 
 /**

@@ -1,0 +1,8 @@
+{
+  "network": "sepolia",
+  "dynamicAmountGetter": "0x9D280Fc5e83C3c1223BdbBc6e7d63CD3bbC98412",
+  "dynamicAPIPredicate": "0xd378Fbce97cD181Cd7A7EcCe32571f1a37E226ed",
+  "deployer": "0x93d43c27746D76e7606C55493A757127b33D7763",
+  "timestamp": "2025-08-03T08:35:37.524Z",
+  "transactionHash": "0x15f49faba66b44853c8325658850c1dcc979cf2fc00d9b5adc38eed76080eade"
+}
