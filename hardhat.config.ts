@@ -19,10 +19,38 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      // Local network for testing
+      forking: {
+        url: "https://eth.llamarpc.com",
+        // Don't specify block number to use latest
+      },
+      accounts: [
+        {
+          privateKey: PRIVATE_KEY,
+          balance: "10000000000000000000000", // 10,000 ETH
+        },
+      ],
+    },
+    localhost: {
+      url: "http://127.0.0.1:8545",
     },
     sepolia: {
       url: SEPOLIA_RPC_URL,
+      accounts: [PRIVATE_KEY],
+    },
+    baseSepolia: {
+      url: "https://sepolia.base.org",
+      chainId: 84532,
+      accounts: [PRIVATE_KEY],
+    },
+    base: {
+      url: "https://mainnet.base.org",
+      chainId: 8453,
+      accounts: [PRIVATE_KEY],
+      gasPrice: 1000000000, // 1 gwei
+    },
+    tenderly: {
+      url: "https://virtual.mainnet.eu.rpc.tenderly.co/93163230-1fd3-4829-ae93-538b00018936",
+      chainId: 1,
       accounts: [PRIVATE_KEY],
     },
   },

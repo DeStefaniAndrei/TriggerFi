@@ -256,7 +256,7 @@ class TriggerFiTakerBot {
       // since we already paid fees separately
       const limitOrderProtocolAddress = CONTRACTS[this.network].limitOrderProtocol;
       const LIMIT_ORDER_PROTOCOL_ABI = [
-        "function fillOrder(tuple(uint256 salt, address makerAsset, address takerAsset, address maker, address receiver, address allowedSender, uint256 makingAmount, uint256 takingAmount, uint256 offsets, bytes interactions, bytes predicate, bytes permit, bytes preInteraction, bytes postInteraction, bytes getMakingAmount, bytes getTakingAmount) order, bytes signature, bytes interaction, uint256 makingAmount, uint256 takingAmount, uint256 skipPermitAndThresholdAmount) payable returns (uint256, uint256, bytes32)"
+        "function fillOrder(tuple(bytes32 salt, address makerAsset, address takerAsset, address maker, address receiver, address allowedSender, uint256 makingAmount, uint256 takingAmount, bytes offsets, bytes interactions, bytes predicate, bytes permit, bytes getMakingAmount, bytes getTakingAmount, bytes preInteraction, bytes postInteraction) order, bytes32 r, bytes32 vs, uint256 amount, uint256 takerTraits) payable returns (uint256 makingAmount, uint256 takingAmount, bytes32 orderHash)"
       ];
       
       const limitOrderProtocol = new ethers.Contract(
@@ -265,14 +265,22 @@ class TriggerFiTakerBot {
         this.signer
       );
       
-      // Fill the entire order (makingAmount = 0, takingAmount = 0 means fill all)
+      // Split signature into r and vs components
+      const signature = orderData.signature;
+      // Remove 0x prefix if present
+      const sigBytes = signature.startsWith('0x') ? signature.slice(2) : signature;
+      
+      // Extract r (first 32 bytes) and vs (next 32 bytes)
+      const r = '0x' + sigBytes.slice(0, 64);
+      const vs = '0x' + sigBytes.slice(64, 128);
+      
+      // Fill the entire order
       const fillTx = await limitOrderProtocol.fillOrder(
         orderData.order,
-        orderData.signature,
-        "0x", // No interaction data
-        0,    // makingAmount = 0 (fill all)
-        0,    // takingAmount = 0 (fill all)  
-        0     // skipPermitAndThresholdAmount = 0
+        r,              // r component of signature
+        vs,             // vs component of signature
+        0,              // amount = 0 (fill entire order)
+        0               // takerTraits = 0 (default traits)
       );
       
       // Wait for confirmation

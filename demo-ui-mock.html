@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TriggerFi - API Configuration Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-gray-800 mb-2">TriggerFi</h1>
+                <p class="text-xl text-gray-600">Convert Classic Capital into Smart Capital</p>
+            </div>
+
+            <!-- Main Card -->
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h2 class="text-2xl font-bold mb-6">Configure Real-World Data Sources</h2>
+                
+                <!-- API 1 - Tariffs -->
+                <div class="mb-8 p-6 bg-gray-50 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <span class="mr-2">🏛️</span> US Trade Department - Tariff Data
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">API Endpoint</label>
+                            <input type="text" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value="https://api.trade.gov/tariffs/v2/japan/automotive" 
+                                readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Authentication</label>
+                            <input type="text" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value="Bearer sk_trade_**********************" 
+                                readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Response Path (JSON)</label>
+                            <input type="text" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value="data.current_rate" 
+                                readonly>
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Condition</label>
+                                <select class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                    <option selected>Greater than ></option>
+                                    <option>Less than <</option>
+                                    <option>Equals =</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Threshold</label>
+                                <input type="number" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    value="15" 
+                                    readonly>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                <input type="text" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    value="%" 
+                                    readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 p-3 bg-green-100 rounded-md border border-green-400">
+                            <p class="text-sm text-green-800 font-medium">
+                                ✅ Current Value: 15.5% - Condition Met!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API 2 - Inflation -->
+                <div class="mb-8 p-6 bg-gray-50 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <span class="mr-2">🏦</span> Bank of Japan - Inflation Data
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">API Endpoint</label>
+                            <input type="text" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value="https://api.boj.or.jp/statistics/inflation/cpi" 
+                                readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Authentication</label>
+                            <input type="text" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value="API-Key: boj_**********************" 
+                                readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Response Path (JSON)</label>
+                            <input type="text" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value="inflation.annual_rate" 
+                                readonly>
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Condition</label>
+                                <select class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                    <option selected>Greater than ></option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Threshold</label>
+                                <input type="number" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    value="5" 
+                                    readonly>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                <input type="text" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    value="%" 
+                                    readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 p-3 bg-green-100 rounded-md border border-green-400">
+                            <p class="text-sm text-green-800 font-medium">
+                                ✅ Current Value: 5.2% - Condition Met!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logic Configuration -->
+                <div class="mb-8 p-6 bg-blue-50 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-4">🧮 Trigger Logic</h3>
+                    <div class="flex items-center justify-center space-x-4">
+                        <div class="px-6 py-3 bg-white rounded-md shadow-md font-medium">
+                            Tariffs > 15%
+                        </div>
+                        <select class="px-4 py-2 bg-white rounded-md shadow-md font-medium text-blue-600">
+                            <option selected>AND</option>
+                            <option>OR</option>
+                        </select>
+                        <div class="px-6 py-3 bg-white rounded-md shadow-md font-medium">
+                            Inflation > 5%
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-blue-100 rounded-md border border-blue-400">
+                        <p class="text-sm text-blue-800 font-medium text-center">
+                            ✅ Both conditions met - Order will execute automatically!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Action Configuration -->
+                <div class="mb-8 p-6 bg-purple-50 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-4">⚡ Action When Triggered</h3>
+                    <div class="flex items-center justify-center space-x-3">
+                        <span class="text-gray-700">Convert</span>
+                        <input type="number" 
+                            class="w-20 px-3 py-2 border border-gray-300 rounded-md text-center font-medium"
+                            value="10" 
+                            readonly>
+                        <span class="text-gray-700">% of</span>
+                        <select class="px-4 py-2 border border-gray-300 rounded-md font-medium">
+                            <option selected>JPYC</option>
+                        </select>
+                        <span class="text-gray-700">to</span>
+                        <select class="px-4 py-2 border border-gray-300 rounded-md font-medium">
+                            <option selected>USDC</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mt-4 text-center text-sm text-gray-600">
+                        This will convert 100,000 JPYC to ~666 USDC at current rates
+                    </div>
+                </div>
+
+                <!-- Create Button -->
+                <button class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg rounded-lg hover:from-blue-700 hover:to-purple-700 transition shadow-lg">
+                    Create Smart Order with Real-World Triggers 🚀
+                </button>
+
+                <!-- Info Box -->
+                <div class="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <p class="text-sm text-yellow-800">
+                        <strong>💡 How it works:</strong> Your order will be monitored 24/7 by Chainlink Functions. 
+                        When both API conditions are met, the order executes automatically on the 1inch protocol.
+                        No manual intervention needed!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Value Prop -->
+            <div class="mt-8 text-center text-gray-600">
+                <p class="text-lg">
+                    Transform $100T+ of passive capital into intelligent, self-executing strategies
+                </p>
+                <p class="mt-2">
+                    TriggerFi - Where Capital Responds to the World
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Demo interactivity
+        document.querySelector('button').addEventListener('click', function() {
+            alert('Order Created! Your capital is now "smart" and will automatically execute when conditions are met.');
+        });
+    </script>
+</body>
+</html>

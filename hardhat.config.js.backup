@@ -1,0 +1,31 @@
+require("@nomicfoundation/hardhat-toolbox");
+
+// Test private key - no real funds
+const TEST_PRIVATE_KEY = "6ac767029147ca423267ec4a001285fec314564a46fdc56436e38934c6bf3c70";
+
+/** @type import('hardhat/config').HardhatUserConfig */
+module.exports = {
+  solidity: {
+    version: "0.8.20",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
+  networks: {
+    sepolia: {
+      url: "https://rpc.sepolia.org",
+      accounts: [TEST_PRIVATE_KEY]
+    },
+    tenderly: {
+      url: "https://virtual.mainnet.eu.rpc.tenderly.co/93163230-1fd3-4829-ae93-538b00018936",
+      chainId: 1,
+      accounts: [TEST_PRIVATE_KEY]
+    },
+    hardhat: {
+      // Local hardhat network
+    }
+  }
+};

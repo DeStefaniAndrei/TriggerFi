@@ -16,6 +16,17 @@ export const CONTRACTS = {
     // Note: USDC address above is different from the one in token-selector
     // Using 0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8 for consistency
   },
+  baseSepolia: {
+    dynamicAPIPredicate: "0xb1b20C1BA8dfa44B16917A9221E48D0E85685f6A", // MockDynamicAPIPredicate for demo
+    dynamicAPIPredicateV2: "0xb1b20C1BA8dfa44B16917A9221E48D0E85685f6A", // Using mock for demo
+    dynamicAmountGetter: "0x3072586fE27A2bE611513A8cCB4378978f9eADAD",
+    chainlinkFunctions: "0x0000000000000000000000000000000000000000", // Not needed for demo
+    usdc: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    limitOrderProtocol: "0xE53136D9De56672e8D2665C98653AC7b8A60Dc44", // Hackathon deployment
+    customOrderManager: "0x6E194fdeba7431937C14bfcD95470A9Ca6084CC1",
+    weth: "0x4200000000000000000000000000000000000006",
+    jpyc: "0xd378Fbce97cD181Cd7A7EcCe32571f1a37E226ed", // Our mock JPYC
+  },
   mainnet: {
     dynamicAPIPredicate: "0x0000000000000000000000000000000000000000", // Not deployed yet
     dynamicAmountGetter: "0x0000000000000000000000000000000000000000", // Not deployed yet
