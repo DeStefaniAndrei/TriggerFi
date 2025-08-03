@@ -66,13 +66,13 @@ class TriggerFiTakerBot {
     // Connect to contracts
     const contracts = CONTRACTS[this.network];
     
-    // Connect to DynamicAPIPredicate contract
+    // Connect to DynamicAPIPredicate contract (V2)
     this.predicateContract = new ethers.Contract(
-      contracts.dynamicAPIPredicate,
+      contracts.dynamicAPIPredicateV2,
       DYNAMIC_API_PREDICATE_ABI,
       this.signer
     );
-    console.log(`   Predicate contract: ${contracts.dynamicAPIPredicate}`);
+    console.log(`   Predicate contract: ${contracts.dynamicAPIPredicateV2}`);
     
     // Check ETH balance for fee payments
     const ethBalance = await this.provider.getBalance(this.signer.address);

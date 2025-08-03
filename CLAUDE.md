@@ -209,6 +209,13 @@ Due to Next.js environment variable issues and hackathon deadline:
 ## Current Branch: on-chain-order-execution
 Implementing dynamic API integration with Chainlink Functions for real-world triggered limit orders.
 
+## Deployed Contracts (Sepolia)
+- **DynamicAPIPredicateV2**: 0x462C4Be5274e8C616C49B659b1cC3Fbdf7A26b6b (Active - uses Chainlink Functions properly)
+- **DynamicAPIPredicateV1**: 0xd378Fbce97cD181Cd7A7EcCe32571f1a37E226ed (Deprecated - doesn't inherit FunctionsClient)
+- **DynamicAmountGetter**: 0x5b02226E1820E80F6212f31Fe51Cf01A7B3D10b2 (Active - for dynamic pricing)
+
+**IMPORTANT**: Always use V2 contract for new development. V1 is kept for reference only.
+
 ## Important Technical Notes
 
 ### 1inch Integration
@@ -341,12 +348,17 @@ function getUpdateFees(bytes32 predicateId) external view returns (uint256) {
 ## Current Deployed Contracts (Sepolia Testnet)
 
 ### Smart Contracts
-- **DynamicAPIPredicate**: `0xd378Fbce97cD181Cd7A7EcCe32571f1a37E226ed`
+- **DynamicAPIPredicateV2**: `0x462C4Be5274e8C616C49B659b1cC3Fbdf7A26b6b` (Active)
+  - Properly inherits from FunctionsClient
   - Manages predicates for Chainlink Functions
   - Stores API conditions and results
   - Tracks update counts for fee calculation
   
-- **DynamicAmountGetter**: `0x5b02226E1820E80F6212f31Fe51Cf01A7B3D10b2`
+- **DynamicAPIPredicate (V1)**: `0xd378Fbce97cD181Cd7A7EcCe32571f1a37E226ed` (Deprecated)
+  - Original version - doesn't work with Chainlink Functions
+  - Kept for reference only
+  
+- **DynamicAmountGetter**: `0x5b02226E1820E80F6212f31Fe51Cf01A7B3D10b2` (Active)
   - Implements 1inch IAmountGetter interface
   - Calculates dynamic pricing based on gas costs and keeper fees
   - Integrates with Chainlink price feeds

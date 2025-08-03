@@ -14,7 +14,7 @@ const { ethers } = require("hardhat");
 
 // Configuration
 const UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
-const PREDICATE_CONTRACT = "0xd378Fbce97cD181Cd7A7EcCe32571f1a37E226ed";
+const PREDICATE_CONTRACT = "0x462C4Be5274e8C616C49B659b1cC3Fbdf7A26b6b"; // V2 contract
 
 // Track active predicates (in production, this would come from events or database)
 const ACTIVE_PREDICATES = [

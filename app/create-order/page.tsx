@@ -198,7 +198,7 @@ export default function CreateOrderPageV2() {
       
       // Get contract address based on network
       const network = chainId === 11155111 ? "sepolia" : "mainnet";
-      const contractAddress = CONTRACTS[network].dynamicAPIPredicate;
+      const contractAddress = CONTRACTS[network].dynamicAPIPredicateV2;
       
       if (contractAddress === "0x0000000000000000000000000000000000000000") {
         throw new Error(`Contract not deployed on ${network}`);
@@ -313,7 +313,7 @@ export default function CreateOrderPageV2() {
         takerAsset: form.takerAsset,
         makingAmount: ethers.parseUnits(form.makerAmount, makerToken.decimals).toString(),
         takingAmount: ethers.parseUnits(form.takerAmount, takerToken.decimals).toString(),
-        predicateContract: CONTRACTS[chainId === 11155111 ? "sepolia" : "mainnet"].dynamicAPIPredicate,
+        predicateContract: CONTRACTS[chainId === 11155111 ? "sepolia" : "mainnet"].dynamicAPIPredicateV2,
         predicateId: predicateId,
         useDynamicPricing: form.useDynamicPricing,
         dynamicAmountGetterAddress: form.useDynamicPricing ? CONTRACTS[chainId === 11155111 ? "sepolia" : "mainnet"].dynamicAmountGetter : undefined

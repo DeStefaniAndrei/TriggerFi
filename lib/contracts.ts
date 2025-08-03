@@ -4,7 +4,8 @@
 
 export const CONTRACTS = {
   sepolia: {
-    dynamicAPIPredicate: "0xd378Fbce97cD181Cd7A7EcCe32571f1a37E226ed",
+    dynamicAPIPredicate: "0xd378Fbce97cD181Cd7A7EcCe32571f1a37E226ed", // V1 - doesn't work with Chainlink
+    dynamicAPIPredicateV2: "0x462C4Be5274e8C616C49B659b1cC3Fbdf7A26b6b", // V2 - properly inherits FunctionsClient
     dynamicAmountGetter: "0x5b02226E1820E80F6212f31Fe51Cf01A7B3D10b2",
     chainlinkFunctions: "0xb83E47C2bC239B3bf370bc41e1459A34b41238D0",
     usdc: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",

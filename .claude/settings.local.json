@@ -18,7 +18,9 @@
       "Bash(mv:*)",
       "Bash(pnpm add:*)",
       "Bash(pnpm list:*)",
-      "Bash(timeout 45 npx hardhat run scripts/keeper-service.js --network sepolia)"
+      "Bash(timeout 45 npx hardhat run scripts/keeper-service.js --network sepolia)",
+      "Bash(cast call:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }
