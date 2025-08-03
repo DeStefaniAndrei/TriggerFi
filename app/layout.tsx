@@ -9,8 +9,8 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "TriggerFi - Yield-Aware Limit Orders",
-  description: "Automated, yield-aware limit orders using 1inch & Aave",
+  title: "TriggerFi - Intelligent Limit Orders with Real-World Triggers",
+  description: "Create limit orders that execute based on weather, yield rates, or any external data. The first protocol bringing real-world conditions to DeFi.",
     generator: 'v0.dev'
 }
 

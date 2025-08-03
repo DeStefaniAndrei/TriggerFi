@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowRight, TrendingUp, Shield, Zap } from "lucide-react"
-import Link from "next/link"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowRight, TrendingUp, Shield, Zap } from "lucide-react";
 
-export default function HomePage() {
+export default function Home() {
   return (
     <div className="space-y-16">
       {/* Hero Section */}
@@ -13,14 +13,14 @@ export default function HomePage() {
             TriggerFi
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-            Automated, yield-aware limit orders using 1inch & Aave
+            Intelligent Limit Orders with Real-World Triggers
           </p>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Create intelligent limit orders that execute based on yield conditions, maximizing your DeFi returns with
-            automated precision.
+            Create limit orders that execute based on weather conditions, yield rates, or any external data. 
+            The first protocol to bring real-world data to DeFi trading.
           </p>
         </div>
-
+        
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link href="/create-order">
             <Button size="lg" className="text-lg px-8">
@@ -43,12 +43,12 @@ export default function HomePage() {
             <div className="mx-auto w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
               <TrendingUp className="h-6 w-6 text-blue-600" />
             </div>
-            <CardTitle>Yield-Aware Orders</CardTitle>
-            <CardDescription>Set conditions based on Aave lending rates and yield thresholds</CardDescription>
+            <CardTitle>Real-World Triggers</CardTitle>
+            <CardDescription>Weather, yield rates, inflation data, and more</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Execute trades only when yield conditions are met, ensuring optimal timing for your DeFi strategies.
+              Trade based on ANY external condition - from frost warnings to interest rates. Perfect for hedging and risk management.
             </p>
           </CardContent>
         </Card>
@@ -73,12 +73,12 @@ export default function HomePage() {
             <div className="mx-auto w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
               <Zap className="h-6 w-6 text-purple-600" />
             </div>
-            <CardTitle>Automated Execution</CardTitle>
-            <CardDescription>Set it and forget it - orders execute automatically</CardDescription>
+            <CardTitle>24/7 Monitoring</CardTitle>
+            <CardDescription>Watches real-world data and executes automatically</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              No need to monitor markets 24/7. Your orders execute when conditions are met.
+              Our bots monitor weather APIs, Chainlink oracles, and market data round the clock. Orders execute instantly when conditions trigger.
             </p>
           </CardContent>
         </Card>
@@ -89,7 +89,7 @@ export default function HomePage() {
         <div className="text-center">
           <h2 className="text-3xl font-bold mb-4">How It Works</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Create sophisticated limit orders with yield-based conditions in three simple steps
+            Create intelligent limit orders with real-world triggers in three simple steps
           </p>
         </div>
 
@@ -98,8 +98,8 @@ export default function HomePage() {
             <div className="mx-auto w-16 h-16 bg-blue-500 text-white rounded-full flex items-center justify-center text-2xl font-bold">
               1
             </div>
-            <h3 className="text-xl font-semibold">Set Parameters</h3>
-            <p className="text-muted-foreground">Choose your tokens, amounts, and yield threshold conditions</p>
+            <h3 className="text-xl font-semibold">Set Conditions</h3>
+            <p className="text-muted-foreground">Choose your trigger: weather data, yield rates, or market conditions</p>
           </div>
 
           <div className="text-center space-y-4">
@@ -115,10 +115,10 @@ export default function HomePage() {
               3
             </div>
             <h3 className="text-xl font-semibold">Auto Execute</h3>
-            <p className="text-muted-foreground">Order executes automatically when yield conditions are met</p>
+            <p className="text-muted-foreground">Order executes automatically when your conditions trigger</p>
           </div>
         </div>
       </section>
     </div>
-  )
+  );
 }
