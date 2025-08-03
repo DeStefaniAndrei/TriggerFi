@@ -20,15 +20,6 @@ export interface LimitOrder {
   postInteraction: string;
 }
 
-export interface OrderConfig {
-  asset: string;
-  threshold: string;
-  isBelowThreshold: boolean;
-  isVariableBorrow: boolean;
-  withdrawAmount: string;
-  targetToken: string;
-  minOutputAmount: string;
-}
 
 // 1inch Limit Order Protocol contract addresses (v4.3.2)
 //For andrei: I'm probably just gonna use the sepolia and mainnet addresses for my project. But I could say in the presentation that my extension is available on all networks.
@@ -65,102 +56,44 @@ export function getLimitOrderProtocolAddress(chainId: number): string {
 }
 
 /**
- * Encode predicate data for Aave rate checking
- * This will be called by the 1inch protocol during order execution
+ * Order configuration for dynamic API predicates
  */
-export function encodePredicateData(
-  ratePredicateAddress: string,
-  asset: string,
-  threshold: string,
-  isBelowThreshold: boolean,
-  isVariableBorrow: boolean
-): string {
-  const abiCoder = new ethers.AbiCoder();
-  
-  return abiCoder.encode(
-    ["address", "address", "uint256", "bool"],
-    [ratePredicateAddress, asset, threshold, isBelowThreshold]
-  );
+export interface DynamicOrderConfig {
+  makerAsset: string;
+  takerAsset: string;
+  makingAmount: string;
+  takingAmount: string;
+  predicateContract: string;
+  predicateId: string;
 }
 
 /**
- * Encode pre-interaction data for Aave withdrawal
- * This will be called by the 1inch protocol before the swap
- */
-export function encodePreInteractionData(
-  withdrawInteractionAddress: string,
-  asset: string,
-  amount: string,
-  recipient: string,
-  user: string,
-  priceFeed?: string,
-  minPrice?: string
-): string {
-  const abiCoder = new ethers.AbiCoder();
-  
-  if (priceFeed && minPrice) {
-    return abiCoder.encode(
-      ["address", "address", "uint256", "address", "address", "address", "int256"],
-      [withdrawInteractionAddress, asset, amount, recipient, user, priceFeed, minPrice]
-    );
-  } else {
-    return abiCoder.encode(
-      ["address", "address", "uint256", "address", "address"],
-      [withdrawInteractionAddress, asset, amount, recipient, user]
-    );
-  }
-}
-
-/**
- * Create a 1inch limit order
+ * Create a 1inch limit order with dynamic API predicate
  */
 export function createLimitOrder(
-  orderConfig: OrderConfig,
-  ratePredicateAddress: string,
-  withdrawInteractionAddress: string,
+  orderConfig: DynamicOrderConfig,
   makerAddress: string,
   receiverAddress: string,
-  priceFeed?: string,
-  minPrice?: string
+  predicateData: string  // Already encoded predicate from predicate-encoder.ts
 ): LimitOrder {
   const salt = ethers.randomBytes(32);
-  
-  // Encode predicate for rate checking
-  const predicateData = encodePredicateData(
-    ratePredicateAddress,
-    orderConfig.asset,
-    orderConfig.threshold,
-    orderConfig.isBelowThreshold,
-    orderConfig.isVariableBorrow
-  );
-  
-  // Encode pre-interaction for Aave withdrawal
-  const preInteractionData = encodePreInteractionData(
-    withdrawInteractionAddress,
-    orderConfig.asset,
-    orderConfig.withdrawAmount || "0",
-    receiverAddress,
-    makerAddress,
-    priceFeed,
-    minPrice
-  );
 
   return {
     salt: ethers.hexlify(salt),
-    makerAsset: orderConfig.asset,
-    takerAsset: orderConfig.targetToken,
+    makerAsset: orderConfig.makerAsset,
+    takerAsset: orderConfig.takerAsset,
     maker: makerAddress,
     receiver: receiverAddress,
     allowedSender: ethers.ZeroAddress,
-    makingAmount: orderConfig.withdrawAmount || "0",
-    takingAmount: orderConfig.minOutputAmount || "0",
+    makingAmount: orderConfig.makingAmount,
+    takingAmount: orderConfig.takingAmount,
     offsets: "0x",
     interactions: "0x",
     predicate: predicateData,
     permit: "0x",
     getMakingAmount: "0x",
     getTakingAmount: "0x",
-    preInteraction: preInteractionData,
+    preInteraction: "0x",
     postInteraction: "0x"
   };
 }
@@ -206,45 +139,10 @@ export async function signLimitOrder(
 }
 
 /**
- * Submit order directly to the 1inch Limit Order Protocol on-chain
+ * NOTE: Orders are submitted to Firebase, not on-chain
+ * Use Firebase SDK to store signed orders off-chain
+ * Takers will discover orders via Firebase API
  */
-export async function submitOrderOnChain(
-  order: LimitOrder,
-  signature: string,
-  signer: ethers.Signer,
-  chainId: number
-): Promise<ethers.ContractTransactionResponse> {
-  const protocolAddress = getLimitOrderProtocolAddress(chainId);
-  const limitOrderProtocol = new ethers.Contract(
-    protocolAddress,
-    LIMIT_ORDER_PROTOCOL_ABI,
-    signer
-  );
-
-  // Convert order to the format expected by the contract
-  const orderStruct = [
-    order.salt,
-    order.makerAsset,
-    order.takerAsset,
-    order.maker,
-    order.receiver,
-    order.allowedSender,
-    order.makingAmount,
-    order.takingAmount,
-    order.offsets,
-    order.interactions,
-    order.predicate,
-    order.permit,
-    order.getMakingAmount,
-    order.getTakingAmount,
-    order.preInteraction,
-    order.postInteraction
-  ];
-
-  // Submit the order to the protocol
-  const tx = await limitOrderProtocol.fillOrder(orderStruct, signature, "0x");
-  return tx;
-}
 
 /**
  * Get order hash for tracking
@@ -383,14 +281,47 @@ export async function getOrderStatus(
 
 /**
  * Fill an order (for takers)
+ * @param order The order to fill
+ * @param signature The maker's signature
+ * @param signer The taker's signer
+ * @param chainId Chain ID
+ * @param predicateContract Address of DynamicAPIPredicate contract
+ * @param predicateId The predicate ID for fee collection
+ * @param value ETH value to send (if needed for the swap)
  */
 export async function fillOrder(
   order: LimitOrder,
   signature: string,
   signer: ethers.Signer,
   chainId: number,
+  predicateContract: string,
+  predicateId: string,
   value?: string
-): Promise<ethers.ContractTransactionResponse> {
+): Promise<{feeTx: ethers.ContractTransactionResponse, fillTx: ethers.ContractTransactionResponse}> {
+  // First, pay accumulated fees to DynamicAPIPredicate
+  const predicateAbi = [
+    "function getUpdateFees(bytes32 predicateId) view returns (uint256)",
+    "function collectFees(bytes32 predicateId) payable"
+  ];
+  
+  const predicateContractInstance = new ethers.Contract(
+    predicateContract,
+    predicateAbi,
+    signer
+  );
+  
+  // Get fees owed
+  const feesOwed = await predicateContractInstance.getUpdateFees(predicateId);
+  
+  // Pay fees (assuming fees are in ETH for simplicity, should be USDC in production)
+  const feeTx = await predicateContractInstance.collectFees(predicateId, {
+    value: feesOwed
+  });
+  
+  // Wait for fee payment to confirm
+  await feeTx.wait();
+  
+  // Now fill the order on 1inch
   const protocolAddress = getLimitOrderProtocolAddress(chainId);
   const limitOrderProtocol = new ethers.Contract(
     protocolAddress,
@@ -417,8 +348,9 @@ export async function fillOrder(
     order.postInteraction
   ];
 
-  const tx = await limitOrderProtocol.fillOrder(orderStruct, signature, "0x", {
+  const fillTx = await limitOrderProtocol.fillOrder(orderStruct, signature, "0x", {
     value: value || "0"
   });
-  return tx;
+  
+  return { feeTx, fillTx };
 } 

@@ -13,11 +13,11 @@ export default function Home() {
             TriggerFi
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-            Intelligent Limit Orders with Real-World Triggers
+            Dynamic Capital Allocation Infrastructure
           </p>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Create limit orders that execute based on weather conditions, yield rates, or any external data. 
-            The first protocol to bring real-world data to DeFi trading.
+            Convert your classic capital into smart capital. Create limit orders that execute based on ANY real-world API data - 
+            tariffs, inflation, weather, supply chain metrics, or any data source you choose.
           </p>
         </div>
         
@@ -43,12 +43,12 @@ export default function Home() {
             <div className="mx-auto w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
               <TrendingUp className="h-6 w-6 text-blue-600" />
             </div>
-            <CardTitle>Real-World Triggers</CardTitle>
-            <CardDescription>Weather, yield rates, inflation data, and more</CardDescription>
+            <CardTitle>Any API, Any Condition</CardTitle>
+            <CardDescription>Define your own smart capital rules</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Trade based on ANY external condition - from frost warnings to interest rates. Perfect for hedging and risk management.
+              Connect ANY API endpoint - economic indicators, supply chain data, social metrics. Set thresholds, combine multiple conditions with AND/OR logic.
             </p>
           </CardContent>
         </Card>
@@ -73,12 +73,12 @@ export default function Home() {
             <div className="mx-auto w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
               <Zap className="h-6 w-6 text-purple-600" />
             </div>
-            <CardTitle>24/7 Monitoring</CardTitle>
-            <CardDescription>Watches real-world data and executes automatically</CardDescription>
+            <CardTitle>Smart Capital</CardTitle>
+            <CardDescription>Capital that responds to world events autonomously</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Our bots monitor weather APIs, Chainlink oracles, and market data round the clock. Orders execute instantly when conditions trigger.
+              Your capital automatically shifts between assets based on real-world triggers. No manual monitoring - let your money work intelligently 24/7.
             </p>
           </CardContent>
         </Card>
@@ -98,8 +98,8 @@ export default function Home() {
             <div className="mx-auto w-16 h-16 bg-blue-500 text-white rounded-full flex items-center justify-center text-2xl font-bold">
               1
             </div>
-            <h3 className="text-xl font-semibold">Set Conditions</h3>
-            <p className="text-muted-foreground">Choose your trigger: weather data, yield rates, or market conditions</p>
+            <h3 className="text-xl font-semibold">Define Your APIs</h3>
+            <p className="text-muted-foreground">Add any API endpoints, set comparison values, combine with AND/OR logic</p>
           </div>
 
           <div className="text-center space-y-4">

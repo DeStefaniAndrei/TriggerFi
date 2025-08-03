@@ -4,155 +4,164 @@
 - DO NOT BE LAZY! Always read files in FULL!!
 - DO NOT CODE IF THERE'S ANYTHING YOU AREN'T COMPLETELY SURE OF OR DON'T UNDERSTAND
 - Always ask for clarification when working with new SDKs/APIs
-- Explain the code as simply as possible as if you were speaking to a begginner dev, do it in the code comments
+- Explain the code as simply as possible as if you were speaking to a beginner dev, do it in the code comments
 
 # TriggerFi Project Overview
 
+## Dynamic Capital Allocation Infrastructure
+TriggerFi converts "classic capital" into "smart capital" - capital that automatically shifts between assets using real-world information to maximize productivity.
+
 ## Problem Statement
-There's $100T+ in global capital that's blind to real-world events. Current DeFi automation can only react to simple on-chain conditions, missing 99% of market-moving signals (inflation data, supply chain disruptions, weather events, social sentiment). This creates massive inefficiencies - treasuries sitting idle during inflation, companies holding excess inventory during demand spikes, traders missing correlations between traditional markets and crypto.
+There's $100T+ in global capital that's blind to real-world events. Current DeFi automation can only react to simple on-chain conditions, missing 99% of market-moving signals (inflation data, tariffs, supply chain disruptions, economic indicators). This creates massive inefficiencies - companies holding depreciating foreign currency reserves, treasuries sitting idle during inflation, traders missing correlations between traditional markets and crypto.
 
-## Solution: Intelligent Limit Orders with Real-World Triggers
-TriggerFi is a hybrid protocol that monitors ANY real-world data source off-chain, then executes trustless trades via 1inch when conditions trigger. We enable capital to automatically respond to the world, not just blockchain events.
+## Solution: Intelligent Limit Orders with User-Defined Real-World Triggers
+TriggerFi enables users to create intelligent limit orders that execute based on ANY real-world data source. Users input their own API endpoints, define triggering conditions, and let their capital automatically respond to global events via trustless 1inch swaps.
 
-## Unique Selling Points
-1. **First protocol to combine real-world data with limit orders** - Not just automation, but intelligent capital redeployment
-2. **Hybrid architecture** - Off-chain intelligence with on-chain execution
-3. **Unlimited condition complexity** - From simple thresholds to ML predictions
-4. **Trustless verification** - Uses Chainlink oracles to verify conditions on-chain
-5. **Gas efficient** - Monitor 10,000 conditions for $50/month vs $500,000 in gas
+## Core Features
+1. **User-Defined APIs**: Input any API endpoint, key, and trigger conditions
+2. **Complex Logic**: Combine multiple APIs with AND/OR operators
+3. **Automatic Integration**: APIs automatically integrated into Chainlink Functions
+4. **Trustless Execution**: On-chain verification and execution via 1inch
+5. **Smart Capital**: Capital that autonomously optimizes based on world events
 
 ## Target Audience (Priority Order)
-1. **Treasury Managers** (DAOs, Corporations) - Managing $100M+ in idle stablecoins
-2. **Tokenized Asset Issuers** (RWA protocols) - Need dynamic liquidity for supply chain, carbon credits
+1. **International Corporations** - Managing foreign currency reserves ($10T+ market)
+2. **Treasury Managers** (DAOs, Corporations) - Managing $100M+ in stablecoins
 3. **Institutional DeFi Traders** - Seeking automated cross-market arbitrage
-4. **Yield Aggregators** - Want to add real-world triggers to strategies
+4. **Tokenized Asset Issuers** (RWA protocols) - Need dynamic liquidity management
 
 ## Architecture
 
 ### Current Implementation
 - **Frontend**: Next.js 14 with TypeScript, Tailwind CSS, shadcn/ui components
 - **Smart Contracts**: Hardhat development environment with Solidity contracts
-  - `AaveRatePredicate.sol` - Checks Aave supply/borrow rates (implemented)
-  - `AaveWithdrawInteraction.sol` - Handles Aave withdrawals (structure ready)
-  - Note: Contract architecture might be refactored for hybrid model
-- **DeFi Integration**: Aave protocol for yield triggers, 1inch for limit orders
-- **Order Builder**: `limit-order-builder.ts` - Creates 1inch orders with predicates
+- **DeFi Integration**: 1inch Limit Order Protocol v4 for execution
+- **Oracle Integration**: Chainlink Functions for API calls and verification
+- **Order Builder**: Creates 1inch orders with custom predicates
 
-### Planned Hybrid Architecture
+### System Architecture
 
-#### 1. Order Creation (Off-Chain)
-- Users sign EIP-712 messages (gasless)
-- Orders stored in Firebase with complex conditions
-- Zero gas cost, instant modifications
+#### 1. Order Creation Flow
+- User inputs API endpoints, keys, and trigger conditions
+- User defines comparison operators (>, <, =) and values
+- Multiple APIs can be combined with AND/OR logic
+- Order signed as EIP-712 message (gasless)
 
-#### 2. Monitoring Layer (Off-Chain)
-- Node.js service for continuous monitoring (implementation approach TBD - discuss with team)
-- Polls multiple data sources:
-  - Chainlink oracles (prices, rates, economic data)
-  - External APIs (weather, traffic, sentiment)
-  - Custom feeds (IoT sensors, supply chain)
-- Note: Monitoring frequency and architecture to be discussed
+#### 2. Predicate Generation
+- User's APIs automatically inserted into Chainlink Function contract
+- Function becomes the predicate for 1inch limit order
+- Supports complex multi-condition logic
 
-#### 3. Trust Layer (Hybrid)
-- Hourly merkle root commits on-chain
-- Users can verify order inclusion
-- Fallback for direct order submission
-
-#### 4. Execution (On-Chain)
-- Executor bot submits pre-signed orders to 1inch
-- On-chain verification via Chainlink oracles
+#### 3. Execution
+- Chainlink Functions periodically check API conditions
+- When predicate returns true, order becomes fillable
+- Taker bot executes order on 1inch
 - Trustless swap execution
 
-## MVP Implementation (2-Day Deadline)
+## MVP Demo: JPY Stablecoin Hedging
 
-### Day 1
-1. **Enhance Predicate Contract**
-   - Create `UniversalConditionPredicate.sol` supporting any Chainlink oracle
-   - Add inflation oracle support (primary demo)
-2. **Off-Chain Infrastructure**
-   - Firebase setup for order storage
-   - Simple Node.js monitoring script (or alternative - TBD)
-3. **Core Demo**: Inflation hedge strategy
-   - "When US CPI > 4%, swap USDC → commodity tokens"
+### Use Case
+A company trading with Japanese clients holds JPY stablecoins for efficient transactions. They want to protect against JPY devaluation.
 
-### Day 2
-1. **Frontend Enhancement**
-   - Strategy builder UI with condition dropdowns
-   - Support for multiple oracle types
-2. **Executor Bot**
-   - Polls Firebase for active orders
-   - Submits to 1inch when conditions met
-3. **Demo Dashboard**
-   - Show potential value captured
-   - Visualize active strategies
+### Demo Predicate
+- **Condition 1**: US tariffs on Japanese cars > 15% (current rate)
+- **Condition 2**: AND JPY inflation rate > 5% (currently ~3.3%)
+- **Action**: Convert 1,000,000 JPYC to USDC at market rate
 
-## Full Solution (Post-Hackathon)
+### Economic Value
+These indicators suggest likely JPY depreciation, so automatic conversion minimizes capital loss and makes their capital more "productive".
 
-### Extended Oracle Support
-- UMA's Optimistic Oracle for community-verified data
-- API3 Airnodes for first-party feeds
-- Tellor for decentralized data
-- Custom TLS Notary proofs for any HTTPS data
+## Blockchain Infrastructure Advantages
 
-### Advanced Features
-- Multi-condition logic (AND/OR/NOT)
-- Time-based conditions
-- Cross-chain execution
-- Machine learning predictions
-- Social sentiment analysis
+1. **Information Objectivity**: No manipulation of data, trustless verification
+2. **Full Capital Control**: Users maintain custody, no intermediary risk
+3. **24/7 Autonomous Execution**: No banking hours or human intervention
+4. **Composability**: Other protocols can build on predicates
+5. **Transparency**: All trades and conditions verifiable on-chain
+6. **No Counterparty Risk**: Direct wallet-to-wallet execution
+7. **Censorship Resistance**: No institution can block capital movements
+8. **Global Accessibility**: Anyone can create smart capital strategies
+9. **Programmable Capital**: Capital becomes responsive to world events
+10. **Lower Costs**: No management fees, only gas for execution
+11. **No Regulatory Overhead**: No compliance costs passed to users
 
-## Use Cases (Implementation Priority)
+## Technical Implementation Details
 
-### Priority 1: Financial Markets (Fastest Integration)
-1. **Inflation Hedge** - Swap stables to commodities when CPI rises
-2. **Gas Optimization** - Execute batched operations during low gas
-3. **Market Correlation** - Rebalance based on TradFi indices
+### Chainlink Functions Integration
+- User APIs dynamically inserted into Function source code
+- Handles authentication (API keys, Bearer tokens) - encrypted with Chainlink DON
+- Parses responses to extract comparison values
+- Returns boolean for predicate evaluation
+- MVP: Batch check multiple orders to save gas
+- Post-MVP: Transition to off-chain monitoring system ($50/month for 10,000 conditions vs $500,000 in gas)
+- Post-MVP Alternative: TLS Notary integration for trustless HTTPS data verification
 
-### Priority 2: Real-World Assets
-1. **Supply Chain** - Adjust inventory tokens based on port congestion
-2. **Carbon Credits** - Trade based on emission levels
-3. **Weather Derivatives** - Hedge agricultural positions
+### 1inch Integration
+- Using Limit Order Protocol v4
+- Predicate contract calls Chainlink Function
+- Uses amountGetters for dynamic pricing (e.g., JPYC/USDC from Chainlink price feeds)
+- Taker bot monitors and executes when conditions met
 
-### Priority 3: Advanced Applications
-1. **Healthcare Supply** - Reallocate based on outbreak data
-2. **Urban Logistics** - Optimize based on traffic patterns
-3. **Energy Markets** - Trade based on grid demand
+### API Configuration
+- **Endpoint**: Full URL to API
+- **Authentication**: API key, Bearer token, or OAuth
+- **Response Path**: JSON path to value (e.g., `data.inflation_rate`)
+- **Comparison**: >, <, or = with threshold value
+- **Logic**: AND/OR for multiple conditions
 
-## Technical Decisions
-
-### Trustless Verification
-- MVP uses Chainlink oracles exclusively
-- Off-chain monitoring is just efficiency layer
-- All conditions verified on-chain during execution
-- Users trust Chainlink, not TriggerFi
-
-### Why Not Pure On-Chain?
-- Gas costs: $200 per complex order vs $0.10
-- Limited data sources
-- No complex logic (ML, correlations)
-- Slow iteration cycles
-
-### Why Not Pure Off-Chain?
-- Requires trust assumptions
-- Centralization risks
-- Less composable
-- Regulatory concerns
+### API Response Parsing
+- Supports dot notation: `data.rates.inflation`
+- Supports bracket notation: `data['rates']['inflation']`
+- Supports array access: `results[0].value`
+- Graceful error handling with safe defaults
+- Automatic type conversion to numbers
+- User can test paths in UI before saving
 
 ## Development Guidelines
 - Use TypeScript for all new code
 - Follow React best practices with hooks and functional components
 - Implement proper error handling for all blockchain interactions
 - Test smart contracts thoroughly before deployment
+- Handle API failures gracefully
+- Implement rate limiting for API calls
 - Use proper gas estimation for all transactions
-- Implement loading states for all async operations
-- Prioritize trustless design patterns
+- Prioritize user control and transparency
 
-## API Integrations
-- 1inch Limit Order Protocol for DEX execution
-- Chainlink oracles for trustless data
-- Aave protocol for DeFi triggers
-- Firebase for order management
-- External APIs via monitoring service
+## IMPORTANT: Environment Variables Issue (Hackathon Workaround)
+Due to Next.js environment variable issues and hackathon deadline:
+- DO NOT use .env for sensitive variables
+- Hardcode test values directly in files
+- This is ONLY for hackathon demo with test wallets
+- Test wallet has no real funds, so security is not critical
+- Post-hackathon: Fix proper env variable handling
+
+## Technical Solutions
+
+### API Response Parsing
+- JSONPath-like syntax with dot/bracket notation
+- UI testing tool for path validation
+- Template library for common APIs
+
+### Update Frequency
+- MVP: 5-minute intervals (balance cost/responsiveness)
+- User-configurable: 1-60 minutes
+- Future: Event-driven via webhooks
+
+### Error Handling
+- 3x retry with exponential backoff
+- Cache last valid response
+- Safe default values (-999999 for errors)
+- User notifications for persistent failures
+
+### Gas Optimization
+- Batch up to 10 orders per Chainlink call
+- 2-minute response caching
+- Post-MVP: Off-chain monitoring layer
+
+### Security
+- Chainlink DON encrypted secrets for API keys
+- No keys stored in TriggerFi contracts
+- User controls key lifecycle
 
 ## File Structure
 - `/app` - Next.js app router pages
@@ -161,10 +170,10 @@ TriggerFi is a hybrid protocol that monitors ANY real-world data source off-chai
 - `/lib` - Utility functions and integrations
 - `/hooks` - Custom React hooks
 - `/test` - Test files for contracts and integrations
-- `/scripts` - Deployment and monitoring scripts (planned)
+- `/scripts` - Deployment and monitoring scripts
 
 ## Current Branch: on-chain-order-execution
-Transitioning from pure on-chain to hybrid architecture for real-world condition support.
+Implementing dynamic API integration with Chainlink Functions for real-world triggered limit orders.
 
 ## Important Technical Notes
 
@@ -177,17 +186,117 @@ Transitioning from pure on-chain to hybrid architecture for real-world condition
   - How to handle partial fills?
   - What are maker/taker fee structures?
 
-### External Data Strategy
-- MVP: Chainlink Functions for weather/external APIs
-- Post-MVP: Universal predicate system for any condition
-- Focus on demonstrating real-world data integration
-- Weather trading as primary demo (agricultural hedging use case)
+### Chainlink Functions
+- Max execution time: 10 seconds
+- Max memory: 128MB
+- Supports HTTP requests with auth
+- Consider response size limits
+- Plan for API rate limiting
 
-### Taker Bot Implementation
-- Acts as order executor when conditions are met
-- Monitors Firebase for active orders
-- Calls 1inch fillOrder when predicates return true
-- ASK QUESTIONS about 1inch taker mechanics during implementation
-- Runs every 30 seconds to check conditions
-- Handles gas estimation and transaction management
+### MVP Priorities
+1. Single API condition support first
+2. Basic comparison operators (>, <, =)
+3. JPY hedging demo with two APIs
+4. Simple UI for API configuration
+5. Ignore pre/post interactions for now
 
+## Custom Order Management (Not Using 1inch API)
+- Store orders ourselves (on-chain events or Firebase)
+- Allows gas-consuming predicates
+- Taker pays for predicate execution
+- More flexibility than 1inch API restrictions
+
+## Predicate Encoding (From Mentor)
+- Use arbitraryStaticCall for calling contracts
+- Must strip 0x prefix: hexDataSlice(params, 2)
+- Predicates return uint256 (1 for true, 0 for false)
+- See lib/predicate-encoder.ts for implementation
+
+## MVP Simplifications (Due to Hackathon Timeline)
+
+### Protocol-Owned Keeper Model
+- **Implementation**: TriggerFi operates the sole keeper service
+- **Revenue Model**: Flat $2 fee per predicate check charged to takers
+- **Update Frequency**: Every 5 minutes for all active orders
+- **Note**: Not the most gas-efficient solution, but fastest to implement
+
+### Simplified Fee Collection
+- Takers pay fee when filling orders (not optimized for gas)
+- Fee covers Chainlink Function costs + profit margin
+- Future optimization: Dynamic pricing based on update frequency
+
+### Deferred Problems (Post-MVP)
+1. **Dead Order Problem**: Orders that never fill still consume update costs
+   - Future solution: Order expiry or deposit-based updates
+2. **Update Efficiency**: Currently updates all orders every 5 minutes
+   - Future solution: Smart updating based on proximity to trigger
+3. **Fee Structure**: Flat fee doesn't account for order size
+   - Future solution: Percentage-based or hybrid fee model
+
+### Why These Simplifications
+- Hackathon timeline requires fast implementation
+- Proves core concept without complex economics
+- Easy to understand and demonstrate
+- Can be optimized post-MVP based on usage data
+
+## Predicate Verification & Fee Solution
+
+### Problem: Taker Gas Waste
+- Takers can't access maker's API keys to check predicates
+- Without checking, takers waste gas on orders that won't fill
+- Need solution that keeps API keys secure while enabling verification
+
+### Solution: Protocol-Owned Keeper with On-Chain Caching
+1. **TriggerFi Keeper Service**:
+   - Updates all predicates every 5 minutes using Chainlink Functions
+   - API keys remain encrypted in Chainlink DON (secure)
+   - Results stored on-chain in DynamicAPIPredicate contract
+
+2. **Free Predicate Checking**:
+   - Takers call `checkCondition()` view function (costs no gas)
+   - Returns cached predicate result from last update
+   - Takers only attempt fills when predicate = true
+
+### Fee Structure: $2 Per Update
+- **Cost Model**: $2 per predicate update (every 5 minutes)
+- **Accumulation**: Fees accumulate until order is filled
+   - Example: Order updated 10 times = $20 in fees
+- **Payment**: Taker pays all accumulated fees when filling
+- **Reset**: After successful fill, update counter resets to 0
+
+### Implementation Details
+```solidity
+// In DynamicAPIPredicate contract
+mapping(bytes32 => uint256) public updateCount;     // Track updates per predicate
+mapping(bytes32 => bool) public lastResult;         // Cache predicate results
+uint256 public constant UPDATE_FEE = 2 * 10**18;    // $2 in stablecoin
+
+// Keeper calls this every 5 minutes
+function checkConditions(bytes32 predicateId) external {
+    // ... execute Chainlink Function ...
+    updateCount[predicateId]++;
+}
+
+// Takers call this for free (view function)
+function checkCondition(bytes32 predicateId) external view returns (uint256) {
+    return lastResult[predicateId] ? 1 : 0;
+}
+
+// Calculate fees owed
+function getUpdateFees(bytes32 predicateId) external view returns (uint256) {
+    return updateCount[predicateId] * UPDATE_FEE;
+}
+```
+
+### Economic Flow
+1. **TriggerFi** fronts ~$2 per update in Chainlink costs
+2. **Accumulation**: Costs accumulate as updateCount increases
+3. **Recovery**: When taker fills, pays updateCount * $2
+4. **Profit**: TriggerFi profits from spread between actual costs and fees
+5. **Risk**: Unfilled orders = unrecovered monitoring costs
+
+### Why This Works
+- **For Takers**: No wasted gas + can verify before filling
+- **For Makers**: API keys secure + automatic monitoring
+- **For TriggerFi**: Revenue model that scales with usage
+- **Incentive Alignment**: Quick fills = lower fees for takers

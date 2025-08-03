@@ -1,7 +1,10 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
-import "@nomicfoundation/hardhat-ignition-ethers";
-import "dotenv/config";
+
+// HACKATHON WORKAROUND: Hardcoded values due to Next.js env issues
+// This is a test wallet with no real funds
+const PRIVATE_KEY = "6ac767029147ca423267ec4a001285fec314564a46fdc56436e38934c6bf3c70";
+const SEPOLIA_RPC_URL = "https://sepolia.infura.io/v3/fbb4fa2b1b734058b1ef4b6a3bb2a602";
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -15,33 +18,20 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      forking: {
-        url: process.env.MAINNET_RPC_URL || "https://eth-mainnet.alchemyapi.io/v2/your-api-key",
-        blockNumber: 19000000, // Optional: pin to specific block
-      },
-    },
-    mainnet: {
-      url: process.env.MAINNET_RPC_URL || "",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      // Local network for testing
     },
     sepolia: {
-      url: process.env.SEPOLIA_RPC_URL || "",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-    },
-    polygon: {
-      url: process.env.POLYGON_RPC_URL || "",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      url: SEPOLIA_RPC_URL,
+      accounts: [PRIVATE_KEY],
     },
   },
   etherscan: {
     apiKey: {
-      mainnet: process.env.ETHERSCAN_API_KEY || "",
-      sepolia: process.env.ETHERSCAN_API_KEY || "",
-      polygon: process.env.POLYGONSCAN_API_KEY || "",
+      sepolia: "", // Not needed for hackathon
     },
   },
   gasReporter: {
-    enabled: process.env.REPORT_GAS !== undefined,
+    enabled: false,
     currency: "USD",
   },
   mocha: {

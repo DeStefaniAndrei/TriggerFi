@@ -1,0 +1,3349 @@
+Directory structure:
+└── smartcontractkit-chainlink-functions-demo-app/
+    ├── README.md
+    ├── arguments.js
+    ├── hardhat.config.ts
+    ├── jest.config.mjs
+    ├── LICENSE
+    ├── networks.d.ts
+    ├── networks.js
+    ├── next.config.js
+    ├── package.json
+    ├── postcss.config.js
+    ├── tailwind.config.js
+    ├── tsconfig.json
+    ├── types.d.ts
+    ├── .editorconfig
+    ├── .env.example
+    ├── .eslintrc
+    ├── .nvmrc
+    ├── .prettierrc.js
+    ├── components/
+    │   ├── Loading.tsx
+    │   ├── Navbar.tsx
+    │   ├── UserProfileDropDown.tsx
+    │   ├── CFButton/
+    │   │   ├── CFButton.module.css
+    │   │   └── index.tsx
+    │   ├── CFContractNotification/
+    │   │   ├── CFContractNotification.module.css
+    │   │   └── index.tsx
+    │   ├── CFDropDown/
+    │   │   ├── CFDropDown.module.css
+    │   │   └── index.tsx
+    │   ├── CFFooter/
+    │   │   ├── CFFooter.module.css
+    │   │   └── index.tsx
+    │   ├── CFIconLabel/
+    │   │   ├── CFIconLabel.module.css
+    │   │   └── index.tsx
+    │   ├── CFInput/
+    │   │   ├── CFInput.module.css
+    │   │   └── index.tsx
+    │   ├── CFNumberIndicator/
+    │   │   ├── CFNumberIndicator.module.css
+    │   │   └── index.tsx
+    │   ├── CFTextWithIcon/
+    │   │   ├── CFTextWithIcon.module.css
+    │   │   └── index.tsx
+    │   └── CFUser/
+    │       ├── CFUser.module.css
+    │       └── index.tsx
+    ├── contracts/
+    │   ├── Donation.sol
+    │   ├── GitHubFunctions.sol
+    │   ├── Ledger.sol
+    │   └── test/
+    │       ├── LinkToken.sol
+    │       └── MockV3Aggregator.sol
+    ├── functions/
+    │   ├── get-wallet-and-repos-from-gist.js
+    │   ├── get-wallet-and-repos-from-gist.spec.js
+    │   ├── github-metric-times-ether.js
+    │   └── github-metric-times-ether.spec.js
+    ├── hooks/
+    │   ├── useGoogleTagManager.ts
+    │   ├── useKeyFocus.tsx
+    │   ├── useListen.tsx
+    │   └── useMetaMask.tsx
+    ├── pages/
+    │   ├── _app.tsx
+    │   └── index.tsx
+    ├── sections/
+    │   ├── About/
+    │   │   ├── About.module.css
+    │   │   ├── data.ts
+    │   │   └── index.tsx
+    │   ├── ClaimSection/
+    │   │   ├── ClaimSection.module.css
+    │   │   ├── ClaimSection.tsx
+    │   │   ├── data.ts
+    │   │   └── index.tsx
+    │   ├── ContractProgress/
+    │   │   ├── ContractProgress.module.css
+    │   │   └── index.tsx
+    │   └── ContractSection/
+    │       ├── ContractSection.module.css
+    │       ├── data.ts
+    │       └── index.tsx
+    ├── styles/
+    │   └── globals.css
+    └── tasks/
+        ├── deploy-calculator.js
+        ├── index.js
+        ├── index.ts
+        ├── simulateScript.js
+        └── upgradeOrDeploy.ts
+
+================================================
+FILE: README.md
+================================================
+> **Note**
+>
+> _This demo represents an educational example to use a Chainlink system, product, or service and is provided to demonstrate how to interact with Chainlink’s systems, products, and services to integrate them into your own. This template is provided “AS IS” and “AS AVAILABLE” without warranties of any kind, it has not been audited, and it may be missing key checks or error handling to make the usage of the system, product or service more clear. Do not use the code in this example in a production environment without completing your own audits and application of best practices. Neither Chainlink Labs, the Chainlink Foundation, nor Chainlink node operators are responsible for unintended outputs that are generated due to errors in code._
+
+# Chainlink Functions Demo App
+
+This is an example dApp, designed to run on the Mumbai testnet (Polygon), that uses [Chainlink Functions](https://docs.chain.link/chainlink-functions/). The functionality allows users to donate MATIC to their favorite GitHub creators. Authors of those repositories can then claim their donations. Donations are made in an amount of MATIC per amount of Stars the repository has.
+
+Chainlink Functions is used to determine the total donation amount by multiplying the MATIC amount by the star count. There's no back-end involved in the whole donation process.
+
+**NOTE**: This example is not production ready, as edge cases are not handled.
+
+## Usage
+
+### Prerequisites
+
+Before being able to deploy the application, you'll need [MetaMask](https://metamask.io/) installed and a wallet on the Mumbai testnet. The latter is used to create and manage the Ledger contract used by this dApp. Tracking interaction between accounts gives a better insight into the dApp's functioning. Therefore, using a different wallet for contract creation and dApp usage is preferable. After installing MetaMask, go to [chainlist.org](*https://chainlist.org/?testnets=true&search=polygon*) and select the Mumbai chain. This will open a prompt from MetaMask. Now either register your existing wallet or create a new account.
+
+You'll need both MATIC and LINK for testing, deploying and funding. Testnet faucets can provide these. For example, Chainlink has [a faucet](https://faucets.chain.link/mumbai) that provides both tokens at once.
+
+A supported Node.js version. This project has been built using Node.js hydrogen. For NVM users, simply run `nvm use`.
+
+> **NOTE for Mac users** Apple's implementation of `tar` has the `--wildcards` flag implied. You'll either need to remove it from the package.json scripts, or use `gtar`.
+
+### Steps
+
+Run these from the project directory where you've cloned this repo.
+
+1. `npm install` or `yarn install` to install all dependencies.
+2. Create a `.env` file, either by making a copy of `.env.example` or starting from scratch. See the chapter [Configuration](#configuration) for more details on the available settings.
+  - You'll need to set at least the `PRIVATE_KEY` variable. To get your key: click on the MetaMask icon; click the three dots; go to account details; and export your private key.
+3. Generate and build all required files by running `npm build`. This downloads the required files, compiles the Solidity contracts and builds the Nextjs project.
+4. Deploy the Ledger contract with `npx hardhat project:deploy`.
+5. Store the returned address in the `NEXT_PUBLIC_CONTRACT_ADDRESS` environment variable.
+6. (optional) Verify the contract. This allows you to decode the bytecode on Polygonscan.
+  1. Create an account on [Polygonscan](polygonscan.com). Note that you'll need to create an account for the main network, which works just as well for the testnet.
+  2. Under your account, go to "API Keys".
+  3. Add a new key.
+  4. Copy your token and save it as the `ETHERSCAN_API_KEY` environment variable.
+  5. Verify the contract with `npx hardhat verify --constructor-args arguments.js $NEXT_PUBLIC_CONTRACT_ADDRESS`. (Replace `$NEXT_PUBLIC_CONTRACT_ADDRESS` with your contract address if you don't have the address in your shell environment).
+
+7. Create a Chainlink Functions subscription and fund it [here](https://functions.chain.link).
+8. Store the subscription id in the `NEXT_PUBLIC_SUBSCRIPTION_ID` environment variable.
+9. Run the application.
+  1. Serve the build.
+  2. Or run the dev server with `npm dev`.
+
+### Configuration
+
+- `PRIVATE_KEY` - Private key used for deploying contracts.
+- `NEXT_PUBLIC_GA_TRACKING_ID` - Set to your Google Analytics tracking id to enable GA.
+- `NEXT_PUBLIC_CONTRACT_ADDRESS` - Where the GH calculator is deployed.
+- `NEXT_PUBLIC_SUBSCRIPTION_ID` - ID of the subscription which has the contract at `NEXT_PUBLIC_CONTRACT_ADDRESS` as a consumer.
+- `ETHERSCAN_API_KEY` - API key for Polygonscan. Not required, it can be used to verify and read contracts.
+
+### Scripts
+
+- `build` - Creates a production-ready build.
+- `dev` - Runs the local development server with HMR.
+- `start` - Starts a server to host the build.
+- `lint` - Searches for lint in the project.
+- `test` - Runs the test suite; the project comes with tests for the functions.
+- `update-beta` - Retrieves the latest beta files for Chainlink Functions.
+
+## Architecture
+
+This dApp consists of two parts: the contracts and the web UI.
+
+Central to the web3 logic is the `Ledger` contract. It is an upgradeable and ownable contract that handles both donations and payouts. In order to verify GitHub metric data and authenticate GitHub users, it uses Chainlink Functions to make off-chain API calls. The contract can be used in a stand-alone fashion. The UI is just a simple app that allows users to interface with the contract. There is no required logic or storage in the web2 part.
+
+### Overview
+
+![A diagram outlining the structure of the application](./logic-overview.png)
+
+### Donation flow
+
+One can call the `donate` method of the `Ledger` contract directly. It requires a value to be sent along with it, which will then be stored in a new `Donation` contract.
+
+The whole flow, however, includes making the calculation through Chainlink Functions first. The `Ledger` offers a `multiplyMetricWithEther` method which takes a repository, whether you want to use stars or forks as a metric, and the amount of MATIC to donate per target reached. When the calculation is done, the contract will emit an event and gives you the amount to donate in WEI.
+
+The web UI takes this number and automatically calls the `donate` method with the found number.
+
+### Payout flow
+
+As the payout does not require additional confirmation from the end user, it consists of a single method on the `Ledger` contract. One can call `claim` with a gist URL. That gist should contain one file containing their own wallet address.
+
+Chainlink Functions will then read that wallet address and the gist's owner (i.e., GitHub account). If the address found and the address of the requesting party does not match, the execution will stop. Otherwise, the values are returned to the contract, which, in turn, checks if it has any unclaimed donations made to a repository by the given GitHub account. These donations are paid out and removed from the list of donations to track.
+
+### Folder Structure
+
+- `contracts/` - Contains the GitHub calculator contract, which uses Chainlink Functions to calculate the total amount owed. It also contains the helper code provided by Chainlink.
+- `functions/` - These are JavaScript scripts which run off-chain through Chainlink Functions.
+- `components`/`hooks`/`pages`/`public`/`sections`/`styles` - Are all part of the Next.JS application.
+- `tasks/` - Contains the Hardhat tasks to assist in managing the dApp.
+
+## Disclaimer
+> :warning: **Disclaimer**: The code used in this Chainlink Functions quickstart template comes from Chainlink community members and has not been audited. The Chainlink team disclaims and shall have no liability with respect to any loss, malfunction, or any other result of deploying a Quickstart Template. By electing to deploy a Quickstart Template you hereby acknowledge and agree to the above.
+
+
+
+================================================
+FILE: arguments.js
+================================================
+const fs = require('fs');
+const path = require('node:path');
+const { networks } = require('./networks');
+const functionsPath = path.resolve(__dirname, 'functions');
+const checkScriptPath = path.resolve(
+  functionsPath,
+  'get-wallet-and-repos-from-gist.js'
+);
+const calculateScriptPath = path.resolve(
+  functionsPath,
+  'github-metric-times-ether.js'
+);
+const checkScript = fs.readFileSync(checkScriptPath, {
+  encoding: 'utf-8',
+});
+const calculateScript = fs.readFileSync(calculateScriptPath, {
+  encoding: 'utf-8',
+});
+module.exports = [
+  networks.mumbai.functionsRouter,
+  // calculateScript,
+  // checkScript,
+];
+
+
+
+================================================
+FILE: hardhat.config.ts
+================================================
+import { HardhatUserConfig } from 'hardhat/config';
+import '@nomicfoundation/hardhat-toolbox';
+import '@nomiclabs/hardhat-ethers';
+import '@openzeppelin/hardhat-upgrades';
+import '@nomiclabs/hardhat-etherscan';
+
+import dotenv from 'dotenv';
+dotenv.config();
+
+import './tasks/index.ts';
+
+const settings = {
+  optimizer: {
+    enabled: true,
+    runs: 1_000,
+  },
+};
+const config: HardhatUserConfig = {
+  solidity: {
+    compilers: [
+      {
+        version: '0.8.19',
+        settings,
+      },
+      {
+        version: '0.7.6',
+        settings,
+      },
+      {
+        version: '0.4.24',
+        settings,
+      },
+    ],
+  },
+  networks: {
+    mumbai: {
+      url: 'https://polygon-mumbai.g.alchemy.com/v2/tCbwTAqlofFnmbVORepuHNcsrjNXWdRJ',
+      accounts: [process.env.PRIVATE_KEY || ''],
+    },
+  },
+  defaultNetwork: 'mumbai',
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  },
+  paths: {
+    sources: './contracts',
+    tests: './test',
+    cache: './cache',
+    artifacts: './build/artifacts',
+  },
+};
+
+export default config;
+
+
+
+================================================
+FILE: jest.config.mjs
+================================================
+import nextJest from 'next/jest.js';
+
+const createJestConfig = nextJest({
+  // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
+  dir: './',
+});
+
+// Add any custom config to be passed to Jest
+/** @type {import('jest').Config} */
+const config = {
+  // Add more setup options before each test is run
+  // setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+
+  // Enable when testing React components
+  // testEnvironment: 'jest-environment-jsdom',
+};
+
+// createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
+export default createJestConfig(config);
+
+
+
+================================================
+FILE: LICENSE
+================================================
+MIT License
+
+Copyright (c) 2023 SmartContract Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+
+================================================
+FILE: networks.d.ts
+================================================
+export type Network = {
+  linkToken: string;
+  linkEthPriceFeed: string;
+  functionsRouter: string;
+  donId: string;
+};
+
+export const networks: Record<string, Network>;
+
+
+
+================================================
+FILE: networks.js
+================================================
+const networks = {
+  mumbai: {
+    linkToken: '0x326C977E6efc84E512bB9C30f76E30c160eD06FB',
+    linkEthPriceFeed: '0x12162c3E810393dEC01362aBf156D7ecf6159528',
+    functionsRouter: '0x6E2dc0F9DB014aE19888F539E59285D2Ea04244C',
+    donId: 'fun-polygon-mumbai-1',
+  },
+};
+
+module.exports = {
+  networks,
+};
+
+
+
+================================================
+FILE: next.config.js
+================================================
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  swcMinify: true,
+};
+
+module.exports = nextConfig;
+
+
+
+================================================
+FILE: package.json
+================================================
+{
+  "name": "chainlink-functions",
+  "version": "0.2.0",
+  "private": true,
+  "scripts": {
+    "dev": "hardhat compile && next dev",
+    "build": "hardhat compile && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@chainlink/contracts": "^0.7.1",
+    "@chainlink/functions-toolkit": "^0.2.4",
+    "@headlessui/react": "^1.7.13",
+    "@heroicons/react": "^2.0.16",
+    "@openzeppelin/contracts": "^4.8.3",
+    "@openzeppelin/contracts-upgradeable": "^4.8.3",
+    "@types/react-gtm-module": "^2.0.1",
+    "axios": "^1.3.4",
+    "dotenv": "^16.0.3",
+    "eth-crypto": "^2.6.0",
+    "ethers": "^5.5.1",
+    "is-http-url": "^2.0.0",
+    "jest": "^29.5.0",
+    "next": "13.2.3",
+    "ora": "^6.3.1",
+    "prompt-sync": "^4.2.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-gtm-module": "^2.0.11",
+    "readline-promise": "^1.0.5",
+    "ts-node": "^10.9.1",
+    "vm2": "^3.9.16",
+    "wagmi": "^0.12.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.21.0",
+    "@ethersproject/abi": "^5.7.0",
+    "@ethersproject/bytes": "^5.7.0",
+    "@ethersproject/providers": "^5.7.2",
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.2",
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@nomiclabs/hardhat-etherscan": "^3.1.0",
+    "@openzeppelin/hardhat-upgrades": "^1.22.1",
+    "@typechain/ethers-v5": "^10.1.0",
+    "@typechain/hardhat": "^6.1.2",
+    "@types/node": "^18.14.6",
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "18.0.11",
+    "@typescript-eslint/eslint-plugin": "^5.54.1",
+    "@typescript-eslint/parser": "^5.54.1",
+    "autoprefixer": "^10.4.13",
+    "classnames": "^2.3.2",
+    "eslint": "8.35.0",
+    "eslint-config-next": "13.2.3",
+    "eslint-config-prettier": "^8.7.0",
+    "eslint-import-resolver-typescript": "^3.5.3",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-prettier": "^4.2.1",
+    "hardhat": "^2.13.0",
+    "hardhat-gas-reporter": "^1.0.8",
+    "postcss": "^8.4.21",
+    "prettier": "^2.8.4",
+    "solidity-coverage": "^0.8.1",
+    "tailwindcss": "^3.2.7",
+    "typechain": "^8.1.1",
+    "typescript": "4.9.5"
+  }
+}
+
+
+
+================================================
+FILE: postcss.config.js
+================================================
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+
+
+================================================
+FILE: tailwind.config.js
+================================================
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  mode: 'jit',
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
+  ],
+  darkMode: 'media', // or 'media' or 'class'
+  theme: {
+    extend: {
+      screens: {
+        sm: '30em',
+        mobile: '48em',
+        laptop: '62em',
+        desktop: '80em',
+        'desktop-lg': '96em',
+      },
+      fontSize: {
+        'heading-4xl': '72px',
+        'heading-3xl': '60px',
+        'heading-2xl': '48px',
+        'heading-xl': '36px',
+        'heading-lg': '30px',
+        'heading-small-lg': '24px',
+        'heading-md': '20px',
+        'heading-sm': '16px',
+        'heading-xs': '14px',
+        'text-6xl': '60px',
+        'text-5xl': '48px',
+        'text-4xl': '36px',
+        'text-3xl': '30px',
+        'text-2xl': '24px',
+        'text-xl': '20px',
+        'text-lg': '18px',
+        'text-md': '16px',
+        'text-sm': '14px',
+        'text-xs': '12px',
+      },
+      colors: {
+        'white-alpha-50': 'rgba(255, 255, 255, 0.04)',
+        'white-alpha-100': 'rgba(255, 255, 255, 0.06)',
+        'white-alpha-200': 'rgba(255, 255, 255, 0.08)',
+        'white-alpha-300': 'rgba(255, 255, 255, 0.16)',
+        'white-alpha-400': 'rgba(255, 255, 255, 0.24)',
+        'white-alpha-500': 'rgba(255, 255, 255, 0.36)',
+        'white-alpha-600': 'rgba(255, 255, 255, 0.48)',
+        'white-alpha-700': 'rgba(255, 255, 255, 0.64)',
+        'white-alpha-800': 'rgba(255, 255, 255, 0.8)',
+        'white-alpha-900': 'rgba(255, 255, 255, 0.92)',
+        'black-alpha-50': 'rgba(0, 0, 0, 0.04)',
+        'black-alpha-100': 'rgba(0, 0, 0, 0.06)',
+        'black-alpha-200': 'rgba(0, 0, 0, 0.08)',
+        'black-alpha-300': 'rgba(0, 0, 0, 0.16)',
+        'black-alpha-400': 'rgba(0, 0, 0, 0.24)',
+        'black-alpha-500': 'rgba(0, 0, 0, 0.36)',
+        'black-alpha-600': 'rgba(0, 0, 0, 0.48)',
+        'black-alpha-700': 'rgba(0, 0, 0, 0.64)',
+        'black-alpha-800': 'rgba(0, 0, 0, 0.8)',
+        'black-alpha-900': 'rgba(0, 0, 0, 0.92)',
+        'gray-50': 'rgba(247, 250, 252, 1)',
+        'gray-100': 'rgba(237, 242, 247, 1)',
+        'gray-200': 'rgba(226, 232, 240, 1)',
+        'gray-300': 'rgba(203, 213, 224, 1)',
+        'gray-400': 'rgba(160, 174, 192, 1)',
+        'gray-500': 'rgba(113, 128, 150, 1)',
+        'gray-600': 'rgba(74, 85, 104, 1)',
+        'gray-700': 'rgba(45, 55, 72, 1)',
+        'gray-800': 'rgba(26, 32, 44, 1)',
+        'gray-900': 'rgba(23, 25, 35, 1)',
+        'red-50': 'rgba(255, 245, 245, 1)',
+        'red-100': 'rgba(254, 215, 215, 1)',
+        'red-200': 'rgba(254, 178, 178, 1)',
+        'red-300': 'rgba(252, 129, 129, 1)',
+        'red-400': 'rgba(245, 101, 101, 1)',
+        'red-500': 'rgba(229, 62, 62, 1)',
+        'red-600': 'rgba(197, 48, 48, 1)',
+        'red-700': 'rgba(155, 44, 44, 1)',
+        'red-800': 'rgba(130, 39, 39, 1)',
+        'red-900': 'rgba(99, 23, 27, 1)',
+        'green-50': 'rgba(240, 255, 244, 1)',
+        'green-100': 'rgba(198, 246, 213, 1)',
+        'green-200': 'rgba(154, 230, 180, 1)',
+        'green-300': 'rgba(104, 211, 145, 1)',
+        'green-400': 'rgba(72, 187, 120, 1)',
+        'green-500': 'rgba(56, 161, 105, 1)',
+        'green-600': 'rgba(37, 133, 90, 1)',
+        'green-700': 'rgba(39, 103, 73, 1)',
+        'green-800': 'rgba(34, 84, 61, 1)',
+        'green-900': 'rgba(28, 69, 50, 1)',
+        'blue-50': 'rgba(235, 248, 255, 1)',
+        'blue-100': 'rgba(190, 227, 248, 1)',
+        'blue-200': 'rgba(144, 205, 244, 1)',
+        'blue-300': 'rgba(99, 179, 237, 1)',
+        'blue-400': 'rgba(66, 153, 225, 1)',
+        'blue-500': 'rgba(49, 130, 206, 1)',
+        'blue-600': 'rgba(43, 108, 176, 1)',
+        'blue-700': 'rgba(44, 82, 130, 1)',
+        'blue-800': 'rgba(42, 67, 101, 1)',
+        'blue-900': 'rgba(26, 54, 93, 1)',
+        'purple-200': 'rgba(183, 148, 244, 1)',
+        'purple-300': 'rgba(159, 122, 234, 1)',
+      },
+      backgroundImage: {
+        'green-gradient':
+          'linear-gradient(180deg, rgba(60, 139, 236, 0.2) 0%, rgba(168, 245, 220, 0.2) 100%)',
+        'blue-gradient':
+          'linear-gradient(123.77deg, rgba(197, 100, 237, 0.2) -2.01%, rgba(89, 212, 237, 0.2) 102.02%)',
+      },
+      animation: {
+        'spin-slow': 'spin 3s linear infinite',
+      },
+    },
+  },
+  variants: {
+    extend: {},
+  },
+  plugins: [],
+};
+
+
+
+================================================
+FILE: tsconfig.json
+================================================
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "baseUrl": ".",
+    "typeRoots": ["types.d.ts", "node_modules/@types"],
+    "paths": {
+      "@components/*": ["components/*"],
+      "@utils/*": ["utils/*"],
+      "@lib/*": ["lib/*"],
+      "@services/*": ["services/*"],
+      "@icons/*": ["public/icons/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}
+
+
+
+================================================
+FILE: types.d.ts
+================================================
+type InjectedProviders = {
+  isMetaMask?: true;
+};
+
+interface Window {
+  ethereum: InjectedProviders & {
+    on: (...args: any[]) => void;
+    removeListener?: (...args: any[]) => void;
+    request<T = any>(args: any): Promise<T>;
+  };
+}
+
+type User = {
+  email: string;
+  imageUrl?: string;
+};
+
+
+
+================================================
+FILE: .editorconfig
+================================================
+# Editor configuration, see https://editorconfig.org
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+end_of_line = lf
+
+[*.{ts,tsx}]
+quote_type = single
+
+[*.md]
+max_line_length = off
+trim_trailing_whitespace = false
+
+
+
+================================================
+FILE: .env.example
+================================================
+# Google analytics
+# NEXT_PUBLIC_GA_TRACKING_ID=
+# NEXT_PUBLIC_GOOGLE_ANALYTICS_TRACKING=GTM-xxxxxx
+
+# Blockchain
+PRIVATE_KEY=
+NEXT_PUBLIC_CONTRACT_ADDRESS=
+NEXT_PUBLIC_SUBSCRIPTION_ID=
+ETHERSCAN_API_KEY=
+
+
+
+================================================
+FILE: .eslintrc
+================================================
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": [
+    "plugin:@typescript-eslint/recommended",
+    "next",
+    "next/core-web-vitals",
+    "prettier"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 12,
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint"],
+  "overrides": [
+    {
+      "files": [
+        "functions/*.js"
+      ],
+      "parserOptions": {
+        "ecmaFeatures": {
+          "globalReturn": true
+        }
+      }
+    }
+  ]
+}
+
+
+
+================================================
+FILE: .nvmrc
+================================================
+lts/hydrogen
+
+
+
+================================================
+FILE: .prettierrc.js
+================================================
+module.exports = {
+  printWidth: 80,
+  semi: true,
+  singleQuote: true,
+  tabWidth: 2,
+  useTabs: false,
+};
+
+
+
+================================================
+FILE: components/Loading.tsx
+================================================
+import { type FC } from 'react';
+
+const dot = `rounded-full h-2 w-2 mx-0.5 bg-current animate-[blink_1s_ease_0s_infinite_normal_both]"`;
+const style = { animationDelay: '0.2s' };
+
+export const Loading: FC = () => {
+  return (
+    <span className="inline-flex text-center items-center leading-7 h-6">
+      <span className={dot} key="dot_1" />
+      <span className={dot} style={style} key="dot_2" />
+      <span className={dot} style={style} key="dot_3" />
+    </span>
+  );
+};
+
+
+
+================================================
+FILE: components/Navbar.tsx
+================================================
+import Image from 'next/image';
+import { Disclosure } from '@headlessui/react';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+
+import UserProfileDropDown from './UserProfileDropDown';
+import CFButton from './CFButton';
+import { useListen } from 'hooks/useListen';
+import { useMetaMask } from '../hooks/useMetaMask';
+import Link from 'next/link';
+
+export default function Navbar() {
+  const {
+    dispatch,
+    state: { status: metaStatus, isMetaMaskInstalled, balance },
+  } = useMetaMask();
+  const listen = useListen();
+
+  const showInstallMetaMask =
+    metaStatus !== 'pageNotLoaded' && !isMetaMaskInstalled;
+
+  const handleConnect = async () => {
+    dispatch({ type: 'loading' });
+    const accounts = await window.ethereum.request({
+      method: 'eth_requestAccounts',
+    });
+
+    if (accounts.length > 0) {
+      const balance = await window.ethereum?.request({
+        method: 'eth_getBalance',
+        params: [accounts[0], 'latest'],
+      });
+
+      dispatch({ type: 'connect', wallet: accounts[0], balance });
+
+      // we can register an event listener for changes to the users wallet
+      listen();
+    }
+  };
+  return (
+    <Disclosure as="nav" className="bg-transparent">
+      {({ open }) => (
+        <>
+          <div className="mx-auto max-w-[1440px] px-4 lg:px-8">
+            <div className="relative flex h-16 items-center justify-between">
+              <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
+                {/* Mobile menu button*/}
+                <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                  <span className="sr-only">Open main menu</span>
+                  {open ? (
+                    <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
+                  ) : (
+                    <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
+                  )}
+                </Disclosure.Button>
+              </div>
+              <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
+                <div className="flex flex-shrink-0 items-center">
+                  <Image
+                    height={40}
+                    width={122}
+                    className="h-10 w-full"
+                    src="./icons/logo.svg"
+                    alt="Your Company"
+                  />
+                </div>
+              </div>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0 gap-2">
+                {balance ? (
+                  <UserProfileDropDown />
+                ) : (
+                  <>
+                    {showInstallMetaMask ? (
+                      <Link
+                        href="https://metamask.io/"
+                        target="_blank"
+                        className="w-full items-center justify-center rounded-md text-white px-5 py-3 text-base font-medium sm:w-auto hover:underline"
+                      >
+                        Install MetaMask
+                      </Link>
+                    ) : (
+                      <CFButton
+                        text="Connect wallet"
+                        size="md"
+                        onClick={handleConnect}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </Disclosure>
+  );
+}
+
+
+
+================================================
+FILE: components/UserProfileDropDown.tsx
+================================================
+import { Fragment } from 'react';
+import { Menu, Transition } from '@headlessui/react';
+import CFUser from './CFUser';
+import { useMetaMask } from '../hooks/useMetaMask';
+
+function classNames(...classes: string[]) {
+  return classes.filter(Boolean).join(' ');
+}
+
+export default function UserProfileDropDown() {
+  const { dispatch } = useMetaMask();
+
+  const handleDisconnect = () => {
+    dispatch({ type: 'disconnect' });
+  };
+  return (
+    <Menu as="div" className="relative ml-3">
+      <div>
+        <Menu.Button className="flex rounded-md bg-gray-800 text-sm focus:outline-none focus:ring-offset-2 focus:ring-offset-gray-800">
+          <span className="sr-only">Open user menu</span>
+          <CFUser />
+        </Menu.Button>
+      </div>
+      <Transition
+        as={Fragment}
+        enter="transition ease-out duration-100"
+        enterFrom="transform opacity-0 scale-95"
+        enterTo="transform opacity-100 scale-100"
+        leave="transition ease-in duration-75"
+        leaveFrom="transform opacity-100 scale-100"
+        leaveTo="transform opacity-0 scale-95"
+      >
+        <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md shadow-lg focus:outline-none">
+          <Menu.Item>
+            {({ active }) => (
+              <span
+                className={classNames(
+                  active ? 'bg-gray-700' : 'bg-gray-800',
+                  'block px-4 py-3 text-sm text-white cursor-pointer'
+                )}
+                onClick={() => {
+                  handleDisconnect();
+                }}
+              >
+                Disconnect Wallet
+              </span>
+            )}
+          </Menu.Item>
+        </Menu.Items>
+      </Transition>
+    </Menu>
+  );
+}
+
+
+
+================================================
+FILE: components/CFButton/CFButton.module.css
+================================================
+@tailwind utilities;
+
+.button_wrapper {
+  @apply transition-opacity delay-1000 py-[10px] px-4 text-text-lg font-semibold text-gray-800 bg-blue-200 rounded-md hover:bg-blue-300 disabled:bg-blue-300 disabled:opacity-50;
+}
+
+.button_md_wrapper {
+  @apply py-2 text-text-md;
+}
+
+
+
+================================================
+FILE: components/CFButton/index.tsx
+================================================
+import classNames from 'classnames';
+import styles from './CFButton.module.css';
+
+interface Props {
+  text: string;
+  disabled?: boolean;
+  size?: 'md' | 'lg';
+  onClick?: () => void;
+}
+
+const CFButton = ({ text, size, onClick, disabled, ...rest }: Props) => {
+  const btnClasses = classNames(styles.button_wrapper, {
+    [styles.button_md_wrapper]: size === 'md',
+  });
+  return (
+    <button className={btnClasses} disabled={disabled} onClick={onClick} {...rest}>
+      {text}
+    </button>
+  );
+};
+
+export default CFButton;
+
+
+
+================================================
+FILE: components/CFContractNotification/CFContractNotification.module.css
+================================================
+@tailwind utilities;
+
+.card {
+  @apply w-full lg:w-[460px] py-6 px-10 flex flex-col justify-center items-center bg-white-alpha-50 border border-white-alpha-300 rounded-md;
+}
+
+.outer_circle {
+  @apply w-[88px] h-[88px] rounded-full bg-white-alpha-100 flex justify-center items-center;
+}
+.circle {
+  @apply w-16 h-16 rounded-full flex justify-center items-center flex-shrink;
+}
+
+.message {
+  @apply mt-6 mb-10 text-gray-300 font-normal text-base;
+}
+
+
+
+================================================
+FILE: components/CFContractNotification/index.tsx
+================================================
+import { CheckIcon } from '@heroicons/react/24/outline';
+import styles from './CFContractNotification.module.css';
+import classNames from 'classnames';
+import Image from 'next/image';
+import CFButton from '@components/CFButton';
+
+type Status = 'success' | 'fail';
+interface Props {
+  status: Status;
+  onClear: () => void;
+  content: Record<Status, { message: string; btnText: string }>;
+}
+
+const CFContractNotification = ({ status, onClear, content }: Props) => {
+  const circleClasses = classNames(styles.circle, {
+    'bg-green-300': status === 'success',
+    'bg-red-300': status === 'fail',
+  });
+  const data = content[status];
+
+  return (
+    <div className={styles.card}>
+      <div className={styles.outer_circle}>
+        <div className={circleClasses}>
+          {status === 'fail' ? (
+            <Image
+              width={30}
+              height={20}
+              src="./icons/sad.svg"
+              alt="sad face"
+              className="transform translate-y-3"
+            />
+          ) : (
+            <CheckIcon className="w-10 h-10" />
+          )}
+        </div>
+      </div>
+      <div className={styles.message}>{data.message}</div>
+
+      <CFButton size="md" text={data.btnText} onClick={onClear} />
+    </div>
+  );
+};
+
+export default CFContractNotification;
+
+
+
+================================================
+FILE: components/CFDropDown/CFDropDown.module.css
+================================================
+@tailwind utilities;
+
+.list_btn {
+  @apply relative h-12 w-full cursor-default rounded-md bg-white-alpha-50 py-2 pl-3 pr-10 text-left border focus:outline-none border-white-alpha-300 focus-visible:border-blue-200 disabled:opacity-50;
+}
+
+.options {
+  @apply absolute z-20 mt-3.5 max-h-60 w-full overflow-auto bg-gray-800 text-base shadow-lg focus:outline-none sm:text-sm;
+}
+
+.option {
+  @apply relative cursor-pointer select-none py-4 pl-10 pr-4 text-white;
+}
+
+
+
+================================================
+FILE: components/CFDropDown/index.tsx
+================================================
+import { Fragment, useState } from 'react';
+import styles from './CFDropDown.module.css';
+import { Listbox, Transition } from '@headlessui/react';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import classNames from 'classnames';
+interface Option {
+  name: string;
+}
+interface Props {
+  options: Option[];
+  defaultValue: Option;
+  onChange?: (value: Option) => void;
+}
+const CFDropDown = ({ options, defaultValue, onChange }: Props) => {
+  const [selected, setSelected] = useState(defaultValue);
+
+  const handleOnChange = (value: Option) => {
+    setSelected(value);
+    onChange && onChange(value);
+  };
+
+  if (options.length == 0) {
+    return null;
+  }
+
+  return (
+    <Listbox value={selected} onChange={handleOnChange}>
+      <div className="relative group">
+        <Listbox.Button className={styles.list_btn}>
+          <span className="block truncate text-gray-200">{selected.name}</span>
+          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+            <ChevronDownIcon
+              className="h-5 w-5 text-gray-400"
+              aria-hidden="true"
+            />
+          </span>
+        </Listbox.Button>
+        <Transition
+          as={Fragment}
+          leave="transition ease-in duration-100"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <Listbox.Options className={styles.options}>
+            {options.map((option, optionIdx) => (
+              <Listbox.Option
+                key={optionIdx}
+                className={() =>
+                  classNames(styles.option, {
+                    'bg-gray-700': selected.name === option.name,
+                  })
+                }
+                value={option}
+              >
+                {({ selected }) => (
+                  <>
+                    <span
+                      className={classNames('block truncate', {
+                        'font-medium': selected,
+                        'font-normal': !selected,
+                      })}
+                    >
+                      {option.name}
+                    </span>
+                  </>
+                )}
+              </Listbox.Option>
+            ))}
+          </Listbox.Options>
+        </Transition>
+      </div>
+    </Listbox>
+  );
+};
+
+export default CFDropDown;
+
+
+
+================================================
+FILE: components/CFFooter/CFFooter.module.css
+================================================
+@tailwind utilities;
+
+.container {
+  @apply flex flex-col-reverse md:flex-row justify-between items-center text-text-sm text-gray-500 font-medium gap-2 px-4;
+}
+
+.copyright {
+  @apply flex items-center gap-1;
+}
+
+.terms_privacy {
+  @apply flex items-center gap-6;
+}
+
+
+
+================================================
+FILE: components/CFFooter/index.tsx
+================================================
+import styles from './CFFooter.module.css';
+
+const CFFooter = () => {
+  const year = new Date().getFullYear();
+
+  return (
+    <footer className={styles.container}>
+      <div className={styles.copyright}>
+        <span>&copy;</span>
+        <span>{year}</span>
+        <span>Chainlink Foundation</span>
+      </div>
+
+      <div className={styles.terms_privacy}>
+        <span>Privacy Policy</span>
+        <span>Terms of Use</span>
+      </div>
+    </footer>
+  );
+};
+
+export default CFFooter;
+
+
+
+================================================
+FILE: components/CFIconLabel/CFIconLabel.module.css
+================================================
+@tailwind utilities;
+
+.container {
+  @apply flex gap-4 items-start;
+}
+
+.content {
+  @apply text-gray-300 text-sm text-left;
+}
+
+
+
+================================================
+FILE: components/CFIconLabel/index.tsx
+================================================
+import Image from 'next/image';
+import styles from './CFIconLabel.module.css';
+
+interface Props {
+  icon: string;
+  text: string;
+}
+
+const CFIconLabel = ({icon, text}: Props) => {
+  return (
+    <div className={styles.container}>
+      <Image width={20} height={20} alt={`${icon} icon`} src={`./icons/${icon}.svg`} />
+      <span className={styles.content}>{text}</span>
+    </div>
+  );
+};
+
+export default CFIconLabel;
+
+
+
+================================================
+FILE: components/CFInput/CFInput.module.css
+================================================
+@tailwind utilities;
+
+.container {
+  @apply flex flex-col gap-2;
+}
+
+.input_container {
+  @apply flex gap-3 py-3 px-4 border bg-white-alpha-50 rounded-md items-center h-12;
+}
+
+.input {
+  @apply placeholder:text-white-alpha-500 text-gray-100 w-full h-full bg-transparent outline-none;
+}
+
+.missing_field {
+  @apply text-red-300 font-medium text-text-xs;
+}
+
+.icon_with_text {
+  @apply flex items-center gap-3 pr-6 border-r border-r-white-alpha-300 uppercase;
+}
+
+
+
+================================================
+FILE: components/CFInput/index.tsx
+================================================
+import { ChangeEvent, useCallback, useState } from 'react';
+import styles from './CFInput.module.css';
+import classNames from 'classnames';
+import Image from 'next/image';
+
+interface Props {
+  type: 'url' | 'text';
+  iconType?: 'matic' | 'link' | null;
+  placeholder: string;
+  onInput: (value: string) => void;
+  base?: string;
+}
+
+const CFInput = ({ type, iconType, placeholder, onInput, base }: Props) => {
+  const [error, setError] = useState(false);
+  const [onFocus, setOnFocus] = useState(false);
+  const [value, setValue] = useState<string | number>('');
+  const containerClasses = classNames(styles.container);
+  const inputContainerClasses = classNames(styles.input_container, {
+    'border-red-500': error,
+    'border-blue-200': onFocus,
+    'border-white-alpha-300': !error && !onFocus,
+  });
+
+  const handleBlur = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const str = e.target.value.trim();
+      if (typeof value === 'string' || typeof str === 'string') {
+        setError(str.length === 0 ? true : false);
+      } else {
+        setError(str === 0 ? true : false);
+      }
+      setOnFocus(false);
+    },
+    [value]
+  );
+
+  const handleInput = (e: ChangeEvent<HTMLInputElement>) => {
+    const str = e.target.value.trim();
+    setValue(str);
+    onInput(str);
+    setError(str.length === 0 ? true : false);
+  };
+  const getIcon = () => {
+    if (iconType === 'matic') {
+      return (
+        <div className={styles.icon_with_text}>
+          <Image
+            width={20}
+            height={20}
+            src="./icons/matic.svg"
+            alt="matic icon"
+          />
+          <span>Matic</span>
+        </div>
+      );
+    } else if (iconType === 'link') {
+      return (
+        <Image width={20} height={20} src="./icons/link.svg" alt="matic icon" />
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div className={containerClasses}>
+      <div className={inputContainerClasses}>
+        {getIcon()}
+        <input
+          type={type}
+          onFocus={() => {
+            setOnFocus(true);
+            setError(false);
+          }}
+          onBlur={handleBlur}
+          onInput={handleInput}
+          className={styles.input}
+          placeholder={placeholder}
+          value={base}
+        />
+      </div>
+      {error && (
+        <span className={styles.missing_field}>Fill in this field</span>
+      )}
+    </div>
+  );
+};
+
+export default CFInput;
+
+
+
+================================================
+FILE: components/CFNumberIndicator/CFNumberIndicator.module.css
+================================================
+@tailwind utilities;
+
+.wrapper {
+  @apply w-9 h-9 transition-colors duration-1000 delay-300 ease-in-out rounded-full flex justify-center items-center font-semibold border-2;
+}
+
+
+
+================================================
+FILE: components/CFNumberIndicator/index.tsx
+================================================
+import cn from 'classnames';
+import styles from './CFNumberIndicator.module.css';
+
+interface IProps {
+  count: number;
+  status: 'done' | 'in progress' | 'pending';
+}
+
+const CFNumberIndicator = ({ count, status }: IProps) => {
+  const indicatorClass = cn(styles.wrapper, {
+    'border-blue-200': status === 'done',
+    'border-blue-200 border-dashed animate-spin-slow': status === 'in progress',
+    'border-gray-600':
+      status === 'pending' || (status !== 'done' && status !== 'in progress'),
+  });
+  const textClass = cn(styles.wrapper, 'border-none', 'absolute', 'top-0', {
+    'text-gray-800 bg-blue-200': status === 'done',
+    'text-blue-200 bg-white-50': status === 'in progress',
+    'text-gray-300 bg-white-50':
+      status === 'pending' || (status !== 'done' && status !== 'in progress'),
+  });
+  return (
+    <div className="relative">
+      <span className={textClass}>{count}</span>
+      <span className={indicatorClass}></span>
+    </div>
+  );
+};
+
+export default CFNumberIndicator;
+
+
+
+================================================
+FILE: components/CFTextWithIcon/CFTextWithIcon.module.css
+================================================
+@tailwind utilities;
+
+.wrapper {
+  @apply flex items-center flex-nowrap gap-2;
+}
+
+.tip {
+  @apply absolute top-3 rounded-md px-4 py-2 w-[260px] bg-gray-600 text-gray-100 before:absolute before:content-[''] before:w-4 before:h-4 before:rotate-45 before:p-0 before:left-[20%] before:bg-gray-600 before:-top-4 before:z-[-1];
+}
+
+.tip::before {
+  @apply absolute w-8 h-8 rotate-45 left-[20%];
+}
+
+
+
+================================================
+FILE: components/CFTextWithIcon/index.tsx
+================================================
+import Image from "next/image";
+import cn from 'classnames';
+import styles  from './CFTextWithIcon.module.css';
+
+interface IProps {
+  text: string;
+  tip: string;
+}
+const CFTextWithIcon = ({text, tip}: IProps) => {
+  return (
+    <span className={styles.wrapper}>
+      <small>{text}</small>
+      <span className="relative group">
+        <Image width={13} height={13} src="./icons/help-tip.svg" alt={text} />
+        <div className={cn(styles.tip, 'hidden group-hover:flex')}>{tip}</div>
+      </span>
+    </span>
+  );
+};
+
+export default CFTextWithIcon;
+
+
+
+================================================
+FILE: components/CFUser/CFUser.module.css
+================================================
+@tailwind utilities;
+
+.user_wrapper {
+  @apply flex items-center gap-6 py-[10px] px-4 rounded-md bg-white-alpha-50;
+}
+
+.wallet_avatar {
+  @apply flex items-center gap-3;
+}
+
+.balance {
+  @apply text-gray-200 font-semibold text-text-sm;
+}
+
+
+
+================================================
+FILE: components/CFUser/index.tsx
+================================================
+import Image from 'next/image';
+import styles from './CFUser.module.css';
+import { useMetaMask } from '../../hooks/useMetaMask';
+
+
+const CFUser = () => {
+  const {
+    state: { wallet, balance },
+  } = useMetaMask();
+  const slicedWallet = wallet?.slice(0, 6) + '...' + wallet?.slice(-4);
+  const calcBalance = (parseInt(balance || '') / 1000000000000000000).toFixed(
+    4
+  );
+  const imageUrl = './icons/avatar.svg';
+
+  return (
+    <div className={styles.user_wrapper}>
+      <span className={styles.balance}>{calcBalance} MATIC</span>
+      <div className={styles.wallet_avatar}>
+        <span>{slicedWallet}</span>
+        <Image
+          width={24}
+          height={24}
+          src={imageUrl}
+          className="rounded-full"
+          alt="avatar"
+        />
+        <Image width={12} height={12} src="./icons/caret.svg" alt="caret" />
+      </div>
+    </div>
+  );
+};
+
+export default CFUser;
+
+
+
+================================================
+FILE: contracts/Donation.sol
+================================================
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.9;
+
+contract Donation {
+  string public repository;
+  address internal owner;
+
+  event Paid(uint amount, address by);
+
+  constructor(string memory _repository, address _owner) payable {
+    repository = _repository;
+    owner = _owner;
+  }
+
+  function payout(address payable _to) public {
+    require(msg.sender == owner, "Only the ledger can request a payout");
+    uint value = address(this).balance;
+    (bool sent, ) = _to.call{value: value}("");
+    require(sent, "Failed to pay out donation");
+
+    emit Paid(value, _to);
+  }
+
+  /// @notice Shows the repository this donation was made to
+  function getRepository() public view returns (string memory) {
+    return repository;
+  }
+}
+
+
+
+================================================
+FILE: contracts/GitHubFunctions.sol
+================================================
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.0;
+
+import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/FunctionsClient.sol";
+import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
+
+contract GitHubFunctions is FunctionsClient {
+  using FunctionsRequest for FunctionsRequest.Request;
+
+  event OCRResponse(bytes32 indexed requestId, bytes result, bytes err);
+
+  string public calculationLogic;
+  bytes32 public latestRequestId;
+  bytes public latestResponse;
+  bytes public latestError;
+  bytes32 public donId;
+
+  constructor(address oracle, bytes32 _donId, string memory _calculationLogic) FunctionsClient(oracle) {
+    donId = _donId;
+    calculationLogic = _calculationLogic;
+  }
+
+  function multiplyMetricWithEther(
+    string[] calldata args,
+    uint64 subscriptionId,
+    uint32 gasLimit
+  ) public returns (bytes32) {
+    FunctionsRequest.Request memory req;
+    req.initializeRequest(FunctionsRequest.Location.Inline, FunctionsRequest.CodeLanguage.JavaScript, calculationLogic);
+    req.setArgs(args);
+
+    bytes32 assignedReqID = _sendRequest(req.encodeCBOR(), subscriptionId, gasLimit, donId);
+    latestRequestId = assignedReqID;
+    return assignedReqID;
+  }
+
+  /**
+   * @notice Callback that is invoked once the DON has resolved the request or hit an error
+   *
+   * @param requestId The request ID, returned by sendRequest()
+   * @param response Aggregated response from the user code
+   * @param err Aggregated error from the user code or from the execution pipeline
+   * Either response or error parameter will be set, but never both
+   */
+  function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
+    latestResponse = response;
+    latestError = err;
+    emit OCRResponse(requestId, response, err);
+  }
+}
+
+
+
+================================================
+FILE: contracts/Ledger.sol
+================================================
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.9;
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+
+import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/FunctionsClient.sol";
+import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
+
+import "./Donation.sol";
+
+/// @title Record of which donations are yet to be claimed
+/// @notice The contract stores donations that have ETH attached to them and allows users to make new donations as well as to claim these donations.
+/// @dev This contract utilizes Chainlink Functions and serves as a demo application
+contract Ledger is Initializable, UUPSUpgradeable, OwnableUpgradeable, FunctionsClient {
+  using FunctionsRequest for FunctionsRequest.Request;
+
+  address[] internal unclaimedDonations;
+  mapping(address => Donation) internal donationMap;
+  mapping(bytes32 => address) internal runningClaims;
+  string internal calculationLogic;
+  string internal checkLogic;
+  bytes32 public donId;
+
+  event OCRResponse(bytes32 indexed requestId, bytes result, bytes err);
+  event Claimed(uint amount, address by);
+
+  constructor(address oracle) FunctionsClient(oracle) {}
+
+  /// @notice Allows for constructor arguments and for these to be passed on when upgrading
+  /// @param _donId DON ID for the Functions DON to which the requests are sent
+  /// @param _calculationLogic JavaScript that can calculate the amount of ETH owed for a pledge
+  /// @param _checkLogic JavaScript that verifies the senders identity with GitHub and returns the repositories to pay out for
+  function initialize(bytes32 _donId, string calldata _calculationLogic, string calldata _checkLogic) public initializer {
+    donId = _donId;
+    calculationLogic = _calculationLogic;
+    checkLogic = _checkLogic;
+    __Ownable_init();
+  }
+
+  /// @notice Pledges the attached amount of ETH to given `_repository`
+  function donate(string calldata _repository) external payable {
+    Donation donation = new Donation{value: msg.value}(_repository, address(this));
+    donationMap[address(donation)] = donation;
+    unclaimedDonations.push(address(donation));
+  }
+
+  /// @notice Calculates the amount of ETH to donate
+  function multiplyMetricWithEther(
+    string calldata _repository,
+    string calldata _metric,
+    string calldata _target,
+    string calldata _amount,
+    uint64 subscriptionId
+  ) external returns (bytes32) {
+    FunctionsRequest.Request memory req;
+    req.initializeRequest(FunctionsRequest.Location.Inline, FunctionsRequest.CodeLanguage.JavaScript, calculationLogic);
+    string[] memory args = new string[](4);
+    args[0] = _repository;
+    args[1] = _metric;
+    args[2] = _target;
+    args[3] = _amount;
+    req.setArgs(args);
+
+    bytes32 assignedReqID = _sendRequest(req.encodeCBOR(), subscriptionId, 300000, donId);
+
+    return assignedReqID;
+  }
+
+  /// @notice Can be called by maintainers to claim donations made to their repositories
+  function claim(string calldata _gist, uint64 subscriptionId) public {
+    FunctionsRequest.Request memory req;
+    req.initializeRequest(FunctionsRequest.Location.Inline, FunctionsRequest.CodeLanguage.JavaScript, checkLogic);
+
+    string[] memory args = new string[](2);
+    args[0] = _gist;
+    args[1] = Strings.toHexString(uint256(uint160(msg.sender)), 20);
+
+    req.setArgs(args);
+    bytes32 assignedReqID = _sendRequest(req.encodeCBOR(), subscriptionId, 300000, donId);
+    runningClaims[assignedReqID] = msg.sender;
+  }
+
+  /// @notice Finalizes the claim process after Chainlink Functions has finished the authentication
+  function finalizeClaim(address payable _maintainer, string memory _login) internal {
+    uint _total = 0;
+    uint _number = 0;
+
+    for (uint i = 0; i < unclaimedDonations.length;) {
+      Donation _current = donationMap[unclaimedDonations[i]];
+      uint _balance = unclaimedDonations[i].balance;
+
+      if (_balance > 0 && containsWord(_login, _current.repository())) {
+        _total += _balance;
+        _number++;
+        _current.payout(_maintainer);
+        delete donationMap[unclaimedDonations[i]];
+      }
+      unchecked { i++; }
+    }
+
+    address[] memory _unclaimedDonations = new address[](unclaimedDonations.length - _number);
+    uint j = 0;
+
+    for (uint i = 0; i < unclaimedDonations.length;) {
+      if (unclaimedDonations[i].balance > 0) {
+        _unclaimedDonations[j] = unclaimedDonations[i];
+        unchecked { j++; }
+      }
+      unchecked{ i++; }
+    }
+    unclaimedDonations = _unclaimedDonations;
+
+    emit Claimed(_total, _maintainer);
+  }
+
+  /// @notice Helper function to see if repository is by maintainer
+  /// @dev pulled from https://github.com/HermesAteneo/solidity-repeated-word-in-string/blob/main/RepeatedWords.sol#L46
+  function containsWord (string memory what, string memory where) internal pure returns (bool found){
+    bytes memory whatBytes = bytes (what);
+    bytes memory whereBytes = bytes (where);
+
+    if(whereBytes.length < whatBytes.length){ return false; }
+
+    found = false;
+    for (uint i = 0; i <= whereBytes.length - whatBytes.length; i++) {
+      bool flag = true;
+      for (uint j = 0; j < whatBytes.length; j++)
+        if (whereBytes [i + j] != whatBytes [j]) {
+          flag = false;
+          break;
+        }
+      if (flag) {
+        found = true;
+        break;
+      }
+    }
+
+    return found;
+  }
+
+  /// @notice Callback that is invoked once the DON has resolved the request or hit an error
+  ///
+  /// @param requestId The request ID, returned by sendRequest()
+  /// @param response Aggregated response from the user code
+  /// @param err Aggregated error from the user code or from the execution pipeline
+  /// Either response or error parameter will be set, but never both
+  function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
+    emit OCRResponse(requestId, response, err);
+
+    if (response.length > 0 && runningClaims[requestId] != address(0)) {
+      string memory login = string(response);
+      finalizeClaim(payable(runningClaims[requestId]), login);
+    }
+  }
+
+  /// @notice View to see which donations are still open
+  function getDonations() public view returns (address[] memory) {
+    return unclaimedDonations;
+  }
+
+  /// @notice The current version of the contract, useful for development purposes
+  function getVersion() public pure returns (uint8) {
+    return 3;
+  }
+
+  function _authorizeUpgrade(address) internal override onlyOwner {}
+}
+
+
+
+================================================
+FILE: contracts/test/LinkToken.sol
+================================================
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.4.24;
+
+import "@chainlink/contracts/src/v0.4/LinkToken.sol";
+
+
+
+================================================
+FILE: contracts/test/MockV3Aggregator.sol
+================================================
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.7.0;
+
+import "@chainlink/contracts/src/v0.7/tests/MockV3Aggregator.sol";
+
+
+
+================================================
+FILE: functions/get-wallet-and-repos-from-gist.js
+================================================
+const [url, sender] = args;
+
+if (!/^https:\/\/gist\.github\.com/.test(url)) {
+  throw new Error('supplied URL must be a GitHub gist');
+}
+const id = url.split('/').at(-1);
+const { data } = await Functions.makeHttpRequest({
+  url: `https://api.github.com/gists/${id}`,
+});
+
+const files = Object.values(data.files);
+if (files.length === 0) {
+  throw new Error('There are no files in the provided gist');
+}
+
+const wallet = Object.values(data.files)[0].content;
+if (wallet.slice(0, 2) !== '0x' || wallet.length < 34 || wallet.length > 62) {
+  throw new Error('Gist does not contain a valid address');
+}
+if (sender.toLowerCase() !== wallet.toLowerCase()) {
+  throw new Error('Sender and found address do not match');
+}
+
+// noinspection JSAnnotator
+return Functions.encodeString(data.owner.login);
+
+
+
+================================================
+FILE: functions/get-wallet-and-repos-from-gist.spec.js
+================================================
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+describe('Function "get wallet and repos from gist"', () => {
+  let functionBody;
+  beforeAll(async () => {
+    const location = path.resolve(
+      __dirname,
+      'get-wallet-and-repos-from-gist.js'
+    );
+    functionBody = await fs.readFile(location, {
+      encoding: 'UTF-8',
+    });
+
+    global.Functions = {
+      makeHttpRequest: jest.fn(),
+      encodeString: jest.fn((input) => input),
+    };
+  });
+
+  afterAll(() => {
+    global.Functions = undefined;
+  });
+
+  it('returns the gist owner', async () => {
+    Functions.makeHttpRequest.mockImplementationOnce(async () => ({
+      data: {
+        files: {
+          'wallet.txt': {
+            content: '0x016720dA88226C8Ff537c9133A2a9361f1FACaE7',
+          },
+        },
+        owner: {
+          login: 'mbicknese',
+        },
+      },
+    }));
+    const result = await eval(
+      `(async (args) => {${functionBody}})(['https://gist.github.com/mbicknese/e07195bc1f833c90eb6356841156189b', '0x016720dA88226C8Ff537c9133A2a9361f1FACaE7'])`
+    );
+    expect(result).toBe('mbicknese');
+  });
+
+  const scenarios = [
+    ['notanaddress'],
+    ['0x0'],
+    ['0x123456789123456789123456789123456789123456789123456789123456789'],
+  ];
+  it.each(scenarios)('checks for a valid address', async (wallet) => {
+    Functions.makeHttpRequest.mockImplementationOnce(async () => ({
+      data: {
+        files: {
+          someFile: {
+            content: wallet,
+          },
+        },
+      },
+    }));
+    await expect(
+      eval(
+        `(async (args) => {${functionBody}})(['https://gist.github.com/mbicknese/e07195bc1f833c90eb6356841156189b', '${wallet}'])`
+      )
+    ).rejects.toThrow('Gist does not contain a valid address');
+  });
+
+  it('rejects unauthorised claims', async () => {
+    Functions.makeHttpRequest.mockImplementationOnce(async () => ({
+      data: {
+        files: {
+          someFile: {
+            content: '0x016720dA88226C8Ff537c9133A2a9361f1FACaE7',
+          },
+        },
+      },
+    }));
+    await expect(
+      eval(
+        `(async (args) => {${functionBody}})(['https://gist.github.com/mbicknese/e07195bc1f833c90eb6356841156189b', '0xotherwalletaddress'])`
+      )
+    ).rejects.toThrow('Sender and found address do not match');
+  });
+});
+
+
+
+================================================
+FILE: functions/github-metric-times-ether.js
+================================================
+const [repo, metric, target, amount] = args;
+
+if (metric !== 'stars' && metric !== 'forks') {
+  throw new Error('Metric needs to be either "stars" or "forks"');
+}
+const metricKey = { stars: 'stargazers_count', forks: 'forks_count' }[metric];
+
+const url = repo
+  .replace('github.com/', 'github.com/repos/')
+  .replace(/(https:\/\/)(.*)(github\.com.*)/, '$1api.$3');
+const res = await Functions.makeHttpRequest({ url });
+const metricCount = +res.data[metricKey];
+if (typeof metricCount !== 'number') {
+  throw new Error('Could not get the amount of metric for repo ' + repo);
+}
+if (metricCount === 0) {
+  // noinspection JSAnnotator
+  return Functions.encodeUint256(0);
+}
+
+const result = Math.floor(metricCount / +target) * +amount;
+
+// noinspection JSAnnotator
+return Functions.encodeUint256(result);
+
+
+
+================================================
+FILE: functions/github-metric-times-ether.spec.js
+================================================
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+describe('Function "github metric times ether"', () => {
+  let functionBody;
+  beforeAll(async () => {
+    const location = path.resolve(__dirname, 'github-metric-times-ether.js');
+    functionBody = await fs.readFile(location, {
+      encoding: 'UTF-8',
+    });
+
+    global.Functions = {
+      makeHttpRequest: jest.fn(),
+      encodeUint256: jest.fn((input) => input),
+    };
+  });
+
+  afterAll(() => {
+    global.Functions = undefined;
+  });
+
+  const url =
+    'https://github.com/smartcontractkit/functions-hardhat-starter-kit';
+  const scenarios = [
+    [10, 1, url, 'forks', '5', '1000000', 2_000_000],
+    [1, 10, url, 'stars', '5', '1000000', 2_000_000],
+    [1, 0, url, 'forks', '5', '1000000', 0],
+    [0, 1, url, 'stars', '5', '1000000', 0],
+    [26, 1, url, 'forks', '3', '1200000', 9_600_000],
+  ];
+  it.each(scenarios)(
+    'calculates the right amount',
+    async (forks, stars, url, metric, target, amount, expected) => {
+      Functions.makeHttpRequest.mockImplementationOnce(async () => ({
+        data: {
+          forks_count: forks,
+          stargazers_count: stars,
+        },
+      }));
+      const result = await eval(
+        `(async (args) => {${functionBody}})([url, metric, target, amount])`
+      );
+      expect(result).toBe(expected);
+    }
+  );
+});
+
+
+
+================================================
+FILE: hooks/useGoogleTagManager.ts
+================================================
+import { useEffect } from 'react';
+import TagManager from 'react-gtm-module';
+
+const useGoogleTagManager = (trackingCode?: string) => {
+  useEffect(() => {
+    if (trackingCode) {
+      TagManager.initialize({ gtmId: trackingCode });
+    }
+  }, [trackingCode]);
+};
+
+export default useGoogleTagManager;
+
+
+
+================================================
+FILE: hooks/useKeyFocus.tsx
+================================================
+import { RefObject, useEffect } from 'react';
+
+/**
+ * Element focus uses Control + keyboard input to trigger
+ * @param key numerical value of key input
+ * @param ref ref to element to targe focus on
+ */
+export default function useKeyFocus(
+  key: number,
+  ref: RefObject<HTMLInputElement>
+) {
+  useEffect(() => {
+    function hotkeyPress(e: KeyboardEvent) {
+      if (e.ctrlKey && e.keyCode === key && ref?.current) {
+        e.preventDefault();
+        if (ref?.current) {
+          ref.current.focus();
+        }
+        return;
+      }
+    }
+
+    document.addEventListener('keydown', hotkeyPress);
+    return () => document.removeEventListener('keydown', hotkeyPress);
+  }, [key, ref]);
+}
+
+
+
+================================================
+FILE: hooks/useListen.tsx
+================================================
+import { useMetaMask } from './useMetaMask';
+
+export const useListen = () => {
+  const { dispatch } = useMetaMask();
+
+  return () => {
+    window.ethereum.on('accountsChanged', async (newAccounts: string[]) => {
+      if (newAccounts.length > 0) {
+        // uppon receiving a new wallet, we'll request again the balance to synchronize the UI.
+        const newBalance = await window.ethereum!.request({
+          method: 'eth_getBalance',
+          params: [newAccounts[0], 'latest'],
+        });
+
+        dispatch({
+          type: 'connect',
+          wallet: newAccounts[0],
+          balance: newBalance,
+        });
+      } else {
+        // if the length is 0, then the user has disconnected from the wallet UI
+        dispatch({ type: 'disconnect' });
+      }
+    });
+  };
+};
+
+
+
+================================================
+FILE: hooks/useMetaMask.tsx
+================================================
+import React, { type PropsWithChildren } from 'react';
+
+type ConnectAction = { type: 'connect'; wallet: string; balance: string };
+type DisconnectAction = { type: 'disconnect' };
+type PageLoadedAction = {
+  type: 'pageLoaded';
+  isMetaMaskInstalled: boolean;
+  wallet: string | null;
+  balance: string | null;
+};
+type LoadingAction = { type: 'loading' };
+type IdleAction = { type: 'idle' };
+
+type Action =
+  | ConnectAction
+  | DisconnectAction
+  | PageLoadedAction
+  | LoadingAction
+  | IdleAction;
+
+type Dispatch = (action: Action) => void;
+
+type Status = 'loading' | 'idle' | 'pageNotLoaded';
+
+type State = {
+  wallet: string | null;
+  isMetaMaskInstalled: boolean;
+  status: Status;
+  balance: string | null;
+};
+
+const initialState: State = {
+  wallet: null,
+  isMetaMaskInstalled: false,
+  status: 'loading',
+  balance: null,
+} as const;
+
+function metaMaskReducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'connect': {
+      const { wallet, balance } = action;
+      const newState = { ...state, wallet, balance, status: 'idle' } as State;
+      const info = JSON.stringify(newState);
+      window.localStorage.setItem('MetaMaskState', info);
+      return newState;
+    }
+    case 'disconnect': {
+      window.localStorage.removeItem('MetaMaskState');
+      return { ...state, wallet: null, balance: null };
+    }
+    case 'pageLoaded': {
+      const { isMetaMaskInstalled, balance, wallet } = action;
+      return {
+        ...state,
+        isMetaMaskInstalled: isMetaMaskInstalled,
+        status: 'idle',
+        wallet,
+        balance,
+      };
+    }
+    case 'loading': {
+      return { ...state, status: 'loading' };
+    }
+    case 'idle': {
+      return { ...state, status: 'idle' };
+    }
+    default: {
+      throw new Error('Unhandled action type');
+    }
+  }
+}
+
+const MetaMaskContext = React.createContext<
+  { state: State; dispatch: Dispatch } | undefined
+>(undefined);
+
+function MetaMaskProvider({ children }: PropsWithChildren) {
+  const [state, dispatch] = React.useReducer(metaMaskReducer, initialState);
+  const value = { state, dispatch };
+
+  return (
+    <MetaMaskContext.Provider value={value}>
+      {children}
+    </MetaMaskContext.Provider>
+  );
+}
+
+function useMetaMask() {
+  const context = React.useContext(MetaMaskContext);
+  if (context === undefined) {
+    throw new Error('useMetaMask must be used within a MetaMaskProvider');
+  }
+  return context;
+}
+
+export { MetaMaskProvider, useMetaMask };
+
+
+
+================================================
+FILE: pages/_app.tsx
+================================================
+import type { AppProps } from 'next/app';
+import Script from 'next/script';
+
+import { MetaMaskProvider } from '../hooks/useMetaMask';
+import useGoogleTagManager from '../hooks/useGoogleTagManager';
+import '../styles/globals.css';
+
+export default function App({ Component, pageProps }: AppProps) {
+  useGoogleTagManager(process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_TRACKING);
+
+  return (
+    <>
+      <Script
+        async
+        src="https://www.googletagmanager.com/gtag/js?id=G-EGSL8E4K3V"
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', '${process.env.NEXT_PUBLIC_GA_TRACKING_ID}');
+        `}
+      </Script>
+      <MetaMaskProvider>
+        <Component {...pageProps} />
+      </MetaMaskProvider>
+    </>
+  );
+}
+
+
+
+================================================
+FILE: pages/index.tsx
+================================================
+import { useEffect } from 'react';
+import Navbar from '@components/Navbar';
+import { useListen } from '../hooks/useListen';
+import { useMetaMask } from '../hooks/useMetaMask';
+import ContractSection from 'sections/ContractSection';
+import ClaimSection from 'sections/ClaimSection';
+import About from 'sections/About';
+
+export default function IndexPage() {
+  const { dispatch } = useMetaMask();
+  const listen = useListen();
+
+  useEffect(() => {
+    if (typeof window !== undefined) {
+      // start by checking if window.ethereum is present, indicating a wallet extension
+      const ethereumProviderInjected = typeof window.ethereum !== 'undefined';
+      // this could be other wallets, so we can verify if we are dealing with MetaMask
+      // using the boolean constructor to be explicit and not let this be used as a falsy value (optional)
+      const isMetaMaskInstalled =
+        ethereumProviderInjected && Boolean(window.ethereum.isMetaMask);
+
+      const local = window.localStorage.getItem('MetaMaskState');
+
+      // user was previously connected, start listening to MM
+      if (local) {
+        listen();
+      }
+
+      // local could be null if not present in LocalStorage
+      const { wallet, balance } = local
+        ? JSON.parse(local)
+        : // backup if local storage is empty
+          { wallet: null, balance: null };
+
+      dispatch({
+        type: 'pageLoaded',
+        isMetaMaskInstalled: isMetaMaskInstalled,
+        wallet,
+        balance,
+      });
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <>
+      <Navbar />
+      <div className="w-full max-w-[1440px] px-4 lg:px-8 pt-4 mx-auto">
+        <ContractSection />
+        <ClaimSection />
+        <About />
+      </div>
+      <div className="gradients green_gradient"></div>
+      <div className="gradients blue_gradient"></div>
+    </>
+  );
+}
+
+
+
+================================================
+FILE: sections/About/About.module.css
+================================================
+@tailwind utilities;
+
+.container {
+  @apply bg-white-alpha-50 backdrop-blur-[10px] rounded-md p-5 lg:px-0 py-10 my-10;
+}
+
+.content_wrapper {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 lg:divide-x divide-white-alpha-100 gap-12 h-full;
+}
+
+.content {
+  @apply flex flex-col px-2 lg:px-10 text-gray-300 text-sm font-normal gap-5;
+}
+
+.title {
+  @apply text-white text-lg font-semibold text-left mb-6 w-fit;
+}
+
+.wallets {
+  @apply bg-white-alpha-50 rounded-md flex items-center p-1.5 gap-2;
+}
+
+.get_started {
+  @apply space-y-4 -translate-y-2;
+}
+
+.list {
+  @apply list-inside flex gap-4 items-center;
+}
+
+.for_devs {
+  @apply list-inside list-disc pl-3;
+}
+
+.github_wrapper {
+  @apply flex items-center gap-2 hover:underline text-blue-200 hover:text-blue-300 visited:text-purple-200 visited:hover:text-purple-300
+font-semibold text-base;
+}
+
+
+
+================================================
+FILE: sections/About/data.ts
+================================================
+export const wallets = [
+  {
+    name: 'metamask',
+    extension: '.svg',
+    link: 'https://metamask.io/',
+  },
+  {
+    name: 'walletconnect',
+    extension: '.svg',
+    link: 'https://walletconnect.com/',
+  },
+];
+
+export const forDevs = [
+  {
+    text: 'How to get started',
+    link: `${process.env.NEXT_GITHUB_URL}/blob/main/README.md`,
+  },
+  {
+    text: 'Chainlink Functions Docs',
+    link: 'https://docs.chain.link/chainlink-functions',
+  },
+  {
+    text: 'Next JS docs',
+    link: 'https://nextjs.org/',
+  },
+];
+
+
+
+================================================
+FILE: sections/About/index.tsx
+================================================
+import Image from 'next/image';
+import styles from './About.module.css';
+import { forDevs, wallets } from './data';
+import { ArrowLongRightIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+
+const About = () => {
+  const github_url = process.env.NEXT_GITHUB_URL;
+
+  return (
+    <section className={styles.container}>
+      <div className={styles.content_wrapper}>
+        <div className={styles.content}>
+          <h4 className={styles.title}>Purpose</h4>
+          <p>
+            This dApp will show you how to use Chainlink Functions to bring web2 data on-chain
+            and use this data in your smart contracts.
+          </p>
+        </div>
+        <div className={styles.content}>
+          <h4 className={styles.title}>Getting Started</h4>
+          <ol className={styles.get_started}>
+            <li className={styles.list}>
+              1. Install & connect a wallet
+              <div className={styles.wallets}>
+                {wallets.map(({ name, extension, link }, walletIndex) => (
+                  <Link href={link} target="_blank" key={walletIndex}>
+                    <Image
+                      src={`/logos/${name}${extension}`}
+                      width={24}
+                      height={24}
+                      alt={`${name} logo`}
+                    />
+                  </Link>
+                ))}
+              </div>
+            </li>
+            <li className={styles.list}>
+              2. Enter the repo URL for the creator you want to sponsor
+            </li>
+            <li className={styles.list}>3. Define the metric by which you will donate (Stars or Forks)</li>
+            <li className={styles.list}>4. Enter the threshold number</li>
+            <li className={styles.list}>
+              5. Enter the amount of MATIC to donate based on your defined threadhold
+            </li>
+          </ol>
+        </div>
+        <div className={styles.content}>
+          <h4 className={styles.title}>For Developers</h4>
+
+          <p>
+            This dApp is built using Chainlink Functions. It enables developers
+            to use web2 data in web3 smart contracts. Learn
+            how to build a full-stack dApp with Chainlink Functions.
+          </p>
+
+          <Link
+            href={github_url || '#'}
+            target="_blank"
+            className={styles.github_wrapper}
+          >
+            <Image
+              src="/logos/github.svg"
+              alt="github logo"
+              width={24}
+              height={24}
+            />
+            <span>View on GitHub</span>
+            <ArrowLongRightIcon className="w-8 h-6" />
+          </Link>
+
+          <ul className={styles.for_devs}>
+            {forDevs.map(({ text, link }, index) => (
+              <li key={index}>
+                <Link href={link} target="_blank">
+                  {text}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default About;
+
+
+
+================================================
+FILE: sections/ClaimSection/ClaimSection.module.css
+================================================
+@tailwind utilities;
+
+.container {
+  @apply bg-white-alpha-50 backdrop-blur-[10px] rounded-md p-5 px-0 lg:px-5 py-10 my-10 grid grid-cols-2 gap-x-52;
+}
+
+.info_heading {
+  @apply text-white font-semibold text-heading-xl md:text-[40px] leading-[120%] lg:pr-16;
+}
+
+.info_description {
+  @apply text-gray-300 font-normal text-base mt-5 mb-10 lg:pr-14;
+}
+
+.info_link {
+  @apply hover:underline text-blue-200 hover:text-blue-300 visited:text-purple-200 visited:hover:text-purple-300
+}
+
+.inputs {
+  @apply grid gap-4 grid-cols-1 lg:pl-14;
+}
+
+
+
+================================================
+FILE: sections/ClaimSection/ClaimSection.tsx
+================================================
+import { ethers } from 'ethers';
+import { useState } from 'react';
+
+import CFInput from '@components/CFInput';
+import CFButton from '@components/CFButton';
+import CFContractNotification from '@components/CFContractNotification';
+
+import LedgerABI from '../../build/artifacts/contracts/Ledger.sol/Ledger.json';
+import ContractProgress from '../ContractProgress';
+import { Ledger } from '../../typechain-types';
+
+import { content, steps } from './data';
+import styles from './ClaimSection.module.css';
+
+const ClaimSection = () => {
+  const [gist, setGist] = useState<string>('');
+  const [state, setState] = useState<
+    'uninitialized' | 'initialized' | 'pending' | 'success' | 'fail'
+  >('uninitialized');
+  type Progress = (typeof steps)[number]['count'];
+  const [progress, setProgress] = useState<Progress>(1);
+
+  const handleClaim = () => {
+    setState('initialized');
+    setProgress(1);
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const ledger = new ethers.Contract(
+      process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '',
+      LedgerABI.abi,
+      signer
+    );
+
+    (async () => {
+      try {
+        /**
+         * All we need to do is call the claim function on our contract. It will verify the identity using Chainlink
+         * Functions, followed by paying out all relevant donations on the chain.
+         */
+        const receipt = await (
+          await (ledger as Ledger).claim(
+            gist,
+            process.env.NEXT_PUBLIC_SUBSCRIPTION_ID || '',
+            { gasLimit: 600_000 }
+          )
+        ).wait(1);
+
+        const requestId = receipt.events?.[0].topics[1];
+
+        /**
+         * Multiple calculations may be running at the same time. We're going to poll for new events and wait for
+         * one that matches our request id. There's a safeguard that stop the execution after 60 seconds.
+         */
+        let result: { args: [string, string, string] } | undefined;
+        const started = Date.now();
+        while (!result && Date.now() - started < 60_000) {
+          const events = await ledger.queryFilter(ledger.filters.OCRResponse()); // Only get the relevant events
+          result = events.find((event) => event.args?.[0] === requestId) as
+            | { args: [string, string, string] }
+            | undefined;
+        }
+        // Bail out if the event didn't fire or the event contains an error response from Chainlink Functions
+        if (result == null || result.args[2] !== '0x') {
+          setState('uninitialized');
+          throw new Error(
+            'Chainlink function did not finish successfully.' +
+              ethers.BigNumber.from(result?.args[2]).toHexString()
+          );
+        }
+
+        setState('success');
+      } catch (e) {
+        console.log(e);
+        setState('fail');
+      }
+    })();
+  };
+
+  return (
+    <article className={styles.container}>
+      <main>
+        {state === 'success' || state === 'fail' ? (
+          <CFContractNotification
+            status={state}
+            onClear={() => {
+              setState('uninitialized');
+              setGist('');
+            }}
+            content={content}
+          />
+        ) : state === 'uninitialized' ? (
+          <form className={styles.inputs}>
+            <p className={styles.info_description}>
+              Enter the URL to your gist containing your wallet address here.
+            </p>
+            <CFInput
+              iconType="link"
+              type="url"
+              onInput={setGist}
+              placeholder="Your gist"
+            />
+            <CFButton
+              onClick={handleClaim}
+              text="Claim your funds"
+              disabled={gist === ''}
+            />
+          </form>
+        ) : (
+          <ContractProgress
+            progress={progress}
+            steps={steps}
+            heading="Your claim is being verified"
+          />
+        )}
+      </main>
+      <aside>
+        <h2 className={styles.info_heading}>
+          Open source maintainer? Claim your donations!
+        </h2>
+        <p className={styles.info_description}>
+          There might be funds waiting for you! Create a gist containing your
+          wallet address and paste the link to that file here. We&apos;ll check
+          if there have been donations to your repositories and transfer the ETH
+          to your wallet.
+          <br />
+          <br />
+          <a className={styles.info_link} href="https://functions.chain.link/">
+            Add your wallet address to the Functions beta preview list to use
+            this app.
+          </a>
+        </p>
+      </aside>
+    </article>
+  );
+};
+
+export default ClaimSection;
+
+
+
+================================================
+FILE: sections/ClaimSection/data.ts
+================================================
+import { IStep } from '../ContractProgress';
+
+export const steps = [
+  {
+    count: 1,
+    label: 'Looking for donations',
+    tip: 'Using Chainlink Functions authenticate your identity and find relevant donations',
+  },
+] as const satisfies readonly IStep[];
+
+export const content = {
+  fail: {
+    message: 'Sorry, something went wrong, please try again',
+    btnText: 'Try again',
+  },
+  success: {
+    message: 'All donations have been transferred to your wallet',
+    btnText: 'Claim another',
+  },
+};
+
+
+
+================================================
+FILE: sections/ClaimSection/index.tsx
+================================================
+import ClaimSection from './ClaimSection';
+export default ClaimSection;
+
+
+
+================================================
+FILE: sections/ContractProgress/ContractProgress.module.css
+================================================
+@tailwind utilities;
+
+.wrapper {
+  @apply bg-white-alpha-50 border border-white-alpha-300 rounded-md p-6;
+}
+
+.heading {
+  @apply text-white text-xl font-semibold mb-6 text-center;
+}
+
+.steps {
+  @apply flex justify-center gap-[25px];
+}
+
+.step {
+  @apply relative flex flex-col justify-center items-center gap-2;
+}
+
+.step_label {
+  @apply text-xs text-center w-20 h-8;
+}
+
+.active_label {
+  @apply text-blue-100;
+}
+
+.separator {
+  @apply absolute top-4 left-14 z-[-1] h-1 w-[72px] bg-gray-600;
+}
+
+.active_separator {
+  transition-property: width;
+  @apply absolute top-0 left-0 z-[-1] h-1 w-0 duration-1000 delay-300 ease-in-out bg-blue-100;
+}
+.active_separator_done {
+  @apply w-[100%];
+}
+
+.progress_tip {
+  @apply mt-6 text-gray-300 text-center text-sm;
+}
+
+
+
+================================================
+FILE: sections/ContractProgress/index.tsx
+================================================
+import cn from 'classnames';
+import CFNumberIndicator from '@components/CFNumberIndicator';
+import styles from './ContractProgress.module.css';
+
+export interface IStep {
+  count: number;
+  label: string;
+  tip: string;
+}
+interface IContractProgress {
+  progress: number;
+  textData?: Record<string, string>;
+  steps: readonly IStep[];
+  heading: string;
+}
+
+const indicator_status = {
+  done: 'done',
+  in_progress: 'in progress',
+  pending: 'pending',
+} as const;
+
+const ContractProgress = ({
+  progress,
+  textData = {},
+  steps,
+  heading,
+}: IContractProgress) => {
+  const getStatus = (value: number) => {
+    return progress === value
+      ? indicator_status.in_progress
+      : value > progress
+      ? indicator_status.pending
+      : indicator_status.done;
+  };
+
+  return (
+    <div className={styles.wrapper}>
+      <h3 className={styles.heading}>{heading}</h3>
+      <div className={styles.steps}>
+        {steps.map((step) => (
+          <div className={styles.step} key={step.count}>
+            <CFNumberIndicator
+              count={step.count}
+              status={getStatus(step.count)}
+            />
+            <span
+              className={cn(styles.step_label, {
+                [styles.active_label]:
+                  getStatus(step.count) === indicator_status.in_progress,
+              })}
+            >
+              {step.label}
+            </span>
+            {step.count !== steps.at(-1)?.count && (
+              <div className={cn(styles.separator)}>
+                <div
+                  className={cn(styles.active_separator, {
+                    [styles.active_separator_done]:
+                      getStatus(step.count) === indicator_status.done,
+                  })}
+                />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className={styles.progress_tip}>
+        {Object.keys(textData).reduce(
+          (result, key) =>
+            result.replace(`{${key.toUpperCase()}}`, textData[key]),
+          steps[progress - 1]?.tip
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ContractProgress;
+
+
+
+================================================
+FILE: sections/ContractSection/ContractSection.module.css
+================================================
+@tailwind utilities;
+
+.container {
+  @apply bg-white-alpha-50 backdrop-blur-[10px] rounded-md p-5 px-0 lg:px-5 py-10 my-10 min-h-[336px];
+}
+
+.content_wrapper {
+  @apply grid gap-20 grid-cols-1 lg:grid-cols-2 px-2 lg:px-5;
+}
+
+.info_heading {
+  @apply text-white font-semibold text-heading-xl md:text-[40px] leading-[120%] lg:pr-16;
+}
+
+.info_description {
+  @apply text-gray-300 font-normal text-base mt-5 mb-10 lg:pr-14;
+}
+
+.info_breakdown {
+  @apply grid gap-4 grid-cols-1 md:grid-cols-3;
+}
+
+.info_link {
+  @apply hover:underline text-blue-200 hover:text-blue-300 visited:text-purple-200 visited:hover:text-purple-300
+}
+
+.inputs {
+  @apply grid gap-4 grid-cols-1 lg:pl-14;
+}
+
+.option_count {
+  @apply grid gap-4 grid-cols-1 md:grid-cols-2;
+}
+
+.btn_wrapper {
+  @apply flex justify-center mt-4;
+}
+
+
+
+================================================
+FILE: sections/ContractSection/data.ts
+================================================
+import { IStep } from '../ContractProgress';
+
+export const breakdown = [
+  {
+    icon: 'add-user',
+    text: 'Support GitHub creators',
+  },
+  {
+    icon: 'star',
+    text: 'Donate Matic based on repo popularity',
+  },
+  {
+    icon: 'shield',
+    text: 'Your GitHub is completely safe',
+  },
+];
+
+export const contractOptions = [{ name: 'Stars' }, { name: 'Forks' }];
+
+export const steps = [
+  {
+    count: 1,
+    label: 'Calculating MATIC',
+    tip: 'Using Chainlink Functions to calculate the total amount of MATIC pledged.',
+  },
+  {
+    count: 2,
+    label: 'Pledging donation',
+    tip: 'Chainlink Functions has determined a donation of {AMOUNT} MATIC.',
+  },
+] as const satisfies readonly IStep[];
+
+export const content = {
+  success: {
+    message: 'Your contract has been successfully created',
+    btnText: 'Execute another contract',
+  },
+  fail: {
+    message: 'Sorry, something went wrong, please try again',
+    btnText: 'Try again',
+  },
+};
+
+
+
+================================================
+FILE: sections/ContractSection/index.tsx
+================================================
+import { useState } from 'react';
+import { ethers } from 'ethers';
+
+import CFIconLabel from '@components/CFIconLabel';
+import CFInput from '@components/CFInput';
+import CFDropDown from '@components/CFDropDown';
+import CFButton from '@components/CFButton';
+import CFContractNotification from '@components/CFContractNotification';
+import ContractProgress from 'sections/ContractProgress';
+
+import LedgerABI from '../../build/artifacts/contracts/Ledger.sol/Ledger.json';
+import { useMetaMask } from '../../hooks/useMetaMask';
+
+import styles from './ContractSection.module.css';
+import { breakdown, content, contractOptions, steps } from './data';
+
+const ContractSection = () => {
+  const [calculatedAmount, setCalculatedAmount] = useState('');
+  const { state: metaMaskState } = useMetaMask();
+  const [matic, setMatic] = useState(0);
+  const [metric, setMetric] = useState(0);
+  const [metricType, setMetricType] = useState<
+    (typeof contractOptions)[number]
+  >(contractOptions[0]);
+  type Progress = (typeof steps)[number]['count'];
+  const [progress, setProgress] = useState<Progress>(1);
+  const [repo, setRepo] = useState<string | undefined>(undefined);
+  const [state, setState] = useState<
+    'uninitialized' | 'initialized' | 'pending' | 'success' | 'fail'
+  >('uninitialized');
+
+  function handleDonation() {
+    setState('initialized');
+    setProgress(1);
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const ledger = new ethers.Contract(
+      process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '',
+      LedgerABI.abi,
+      signer
+    );
+
+    (async () => {
+      try {
+        // Step 1: Have Chainlink Functions calculate the amount of Ether to donate
+        const calculationTx = await ledger.multiplyMetricWithEther(
+          `https://github.com/${repo}`,
+          metricType.name.toLowerCase(),
+          `${metric}`,
+          ethers.utils.parseUnits(matic.toString(), 'ether').toString(),
+          process.env.NEXT_PUBLIC_SUBSCRIPTION_ID,
+          {
+            gasLimit: 600_000,
+          }
+        );
+        const calculationReceiptTx = await calculationTx.wait(1);
+        // Chainlink Functions give you a request id to track to progress of your execution
+        const requestId = calculationReceiptTx.events[0].topics[1];
+
+        /**
+         * Multiple calculations may be running at the same time. We're going to poll for new events and wait for
+         * one that matches our request id. There's a safeguard that stop the execution after 60 seconds.
+         */
+        let result: { args: [string, string, string] } | undefined;
+        const started = Date.now();
+        while (!result && Date.now() - started < 60_000) {
+          // Only get the relevant events
+          const events = await ledger.queryFilter(
+            ledger.filters.OCRResponse(),
+            calculationReceiptTx.blockNumber
+          );
+          result = events.find((event) => event.args?.[0] === requestId) as
+            | { args: [string, string, string] }
+            | undefined;
+        }
+
+        // Bail out if the event didn't fire or the event contains an error response from Chainlink Functions
+        if (result == null || result.args[2] !== '0x') {
+          setState('uninitialized');
+          throw new Error(
+            'Chainlink function did not finish successfully.' +
+              ethers.BigNumber.from(result?.args[2]).toHexString()
+          );
+        }
+
+        // Step 2: Donate the calculated amount to the ledger
+        setProgress(2);
+        const calculatedAmountHex = result.args[1];
+        const calculatedAmount = parseInt(calculatedAmountHex, 16);
+        setCalculatedAmount(
+          (calculatedAmount / 1_000_000_000_000_000_000).toString()
+        );
+
+        await (
+          await ledger.donate(`https://github.com/${repo}`, {
+            value: calculatedAmountHex,
+          })
+        ).wait(1);
+        setState('success');
+      } catch (e) {
+        console.log(e);
+        setState('fail');
+      }
+    })();
+  }
+
+  return (
+    <section className={styles.container}>
+      <div className={styles.content_wrapper}>
+        <div>
+          <h1 className={styles.info_heading}>
+            Sponsor your favorite GitHub creators with Chainlink Functions
+          </h1>
+          <p className={styles.info_description}>
+            Contribute to GitHub creators who meet the goals you define.
+            <br />
+            <br />
+            Define a threshold goal for the creator to reach and execute a
+            one-time donation based on your criteria.
+            <br />
+            <br />
+            <a
+              className={styles.info_link}
+              href="https://functions.chain.link/"
+            >
+              Add your wallet address to the Functions beta preview list to use
+              this app.
+            </a>
+          </p>
+          <div className={styles.info_breakdown}>
+            {breakdown.map(({ icon, text }, breakdownIndex) => (
+              <CFIconLabel icon={icon} text={text} key={breakdownIndex} />
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.inputs}>
+          {state === 'success' || state === 'fail' ? (
+            <CFContractNotification
+              status={state}
+              onClear={() => {
+                setState('uninitialized');
+                setMetric(0);
+                setRepo(undefined);
+                setMatic(0);
+              }}
+              content={content}
+            />
+          ) : (
+            <>
+              {state === 'initialized' ? (
+                <ContractProgress
+                  progress={progress}
+                  textData={{ amount: calculatedAmount }}
+                  steps={steps}
+                  heading="Your payment is being processed"
+                />
+              ) : (
+                <>
+                  <div>
+                    <CFInput
+                      type="url"
+                      iconType="link"
+                      placeholder="Enter GitHub repo URL"
+                      base={`https://github.com/${repo || ''}`}
+                      onInput={(value) => setRepo(value.slice(19))}
+                    />
+                  </div>
+                  <div className={styles.option_count}>
+                    <CFDropDown
+                      options={contractOptions}
+                      defaultValue={metricType}
+                      onChange={(value) => setMetricType(value)}
+                    />
+                    <CFInput
+                      type="text"
+                      placeholder={`Enter number of ${metricType.name.toLowerCase()}`}
+                      onInput={(value) => setMetric(+value)}
+                    />
+                  </div>
+                  <div>
+                    <CFInput
+                      type="text"
+                      iconType="matic"
+                      placeholder="Enter Matic amount contribution (ex: 0.0001)"
+                      onInput={(value) => setMatic(+value)}
+                    />
+                  </div>
+                  <div className={styles.btn_wrapper}>
+                    <CFButton
+                      text="Execute contract"
+                      size="lg"
+                      onClick={handleDonation}
+                      disabled={
+                        !(
+                          matic > 0 &&
+                          metric > 0 &&
+                          repo &&
+                          state === 'uninitialized' &&
+                          metaMaskState.wallet
+                        )
+                      }
+                    />
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default ContractSection;
+
+
+
+================================================
+FILE: styles/globals.css
+================================================
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-family-inter: 'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    Segoe UI,
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    Fira Sans,
+    Droid Sans,
+    Helvetica Neue,
+    sans-serif;
+}
+
+html,
+body {
+  font-family: var(--font-family-inter);
+  @apply p-0 m-0;
+}
+.gradients {
+  @apply rounded-full blur-[150px] w-[800px] h-[800px] fixed top-0 -z-20;
+}
+
+.green_gradient{
+  @apply -left-32 blur-[150px] bg-green-gradient;
+}
+.blue_gradient{
+  @apply -right-32 -top-14 blur-[150px] bg-blue-gradient;
+}
+
+a {
+  @apply no-underline text-inherit;
+}
+
+* {
+  @apply box-border;
+}
+
+body {
+  @apply bg-gray-900 text-white;
+}
+
+
+
+
+================================================
+FILE: tasks/deploy-calculator.js
+================================================
+/* eslint-env node */
+/* eslint-disable @typescript-eslint/no-var-requires */
+
+const fs = require('fs/promises');
+const path = require('node:path');
+
+const { networks } = require('../networks');
+
+task(
+  'deploy-calculator',
+  'Deploys the GitHub calculator smart contract.'
+).setAction(async () => {
+  try {
+    const source = await fs.readFile(
+      path.join(__dirname, '../functions/github-metric-times-ether.js'),
+      { encoding: 'utf8' }
+    );
+    console.log(source);
+
+    /** @var {FunctionsConsumer} contract  */
+    const factory = await ethers.getContractFactory('GitHubFunctions');
+    const contract = await factory.deploy(
+      networks[network.name].functionsRouter,
+      networks[network.name].donId,
+      source
+    );
+    await contract.deployTransaction.wait(1);
+
+    console.log(`Deployed contract to ${contract.address}`);
+  } catch (e) {
+    console.log(e.message);
+  }
+});
+
+
+
+================================================
+FILE: tasks/index.js
+================================================
+//exports.keepers = require('./automation')
+exports.FunctionsClient = require("./Functions-client")
+exports.FunctionsBilling = require("./Functions-billing")
+exports.accounts = require("./accounts")
+exports.balance = require("./balance")
+exports.blockNumber = require("./block-number")
+
+
+
+================================================
+FILE: tasks/index.ts
+================================================
+// import './index.js';
+
+import './upgradeOrDeploy';
+import './simulateScript';
+
+
+
+================================================
+FILE: tasks/simulateScript.js
+================================================
+/* eslint-disable @typescript-eslint/no-var-requires */
+
+const path = require('path');
+const fs = require('fs');
+const {
+  simulateScript,
+  decodeResult,
+} = require('@chainlink/functions-toolkit');
+const {
+  Location,
+  ReturnType,
+  CodeLanguage,
+} = require('@chainlink/functions-toolkit');
+
+task(
+  'functions-simulate-script',
+  'Executes the JavaScript source code locally'
+).setAction(async () => {
+  const checkScriptPath = path.resolve(
+    __dirname,
+    '../',
+    'functions',
+    'github-metric-times-ether.js'
+  );
+  const checkScript = fs.readFileSync(checkScriptPath, 'utf8');
+
+  const requestConfig = {
+    source: checkScript,
+    args: [
+      'https://github.com/smartcontractkit/chainlink-functions-demo-app',
+      'stars',
+      '1',
+      '1000000000',
+    ],
+    codeLanguage: CodeLanguage.JavaScript,
+    expectedReturnType: ReturnType.bytes,
+    codeLocation: Location.Inline,
+  };
+
+  // Simulate the JavaScript execution locally
+  const { responseBytesHexstring, errorString, capturedTerminalOutput } =
+    await simulateScript(requestConfig);
+  console.log(`${capturedTerminalOutput}\n`);
+  if (responseBytesHexstring) {
+    console.log(
+      `Response returned by script during local simulation: ${decodeResult(
+        responseBytesHexstring,
+        requestConfig.expectedReturnType
+      ).toString()}\n`
+    );
+  }
+  if (errorString) {
+    console.log(`Error returned by simulated script:\n${errorString}\n`);
+  }
+});
+
+
+
+================================================
+FILE: tasks/upgradeOrDeploy.ts
+================================================
+import { task } from 'hardhat/config';
+import dotenv from 'dotenv';
+dotenv.config();
+
+import { networks } from '../networks';
+import { Ledger } from '../typechain-types';
+import path from 'node:path';
+import fs from 'node:fs/promises';
+
+task(
+  'project:deploy',
+  'Deploys or upgrades the latest version of the Ledger and Donation'
+)
+  .addOptionalParam('address', 'Where the current proxy is deployed')
+  .setAction(async (taskArgs, { network, ethers, upgrades }) => {
+    const proxyAddress =
+      taskArgs.address || process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+    const factory = await ethers.getContractFactory('Ledger');
+    const functionsPath = path.resolve(__dirname, '../', 'functions');
+    const checkScriptPath = path.resolve(
+      functionsPath,
+      'get-wallet-and-repos-from-gist.js'
+    );
+    const calculateScriptPath = path.resolve(
+      functionsPath,
+      'github-metric-times-ether.js'
+    );
+    const checkScript = await fs.readFile(checkScriptPath, {
+      encoding: 'utf-8',
+    });
+    const calculateScript = await fs.readFile(calculateScriptPath, {
+      encoding: 'utf-8',
+    });
+
+    const donIdBytes32 = ethers.utils.formatBytes32String(networks?.[network.name].donId)
+
+    if (!proxyAddress) {
+      const ledger = await upgrades.deployProxy(
+        factory,
+        [
+          donIdBytes32,
+          calculateScript,
+          checkScript,
+        ],
+        {
+          initializer: 'initialize',
+          constructorArgs: [networks?.[network.name].functionsRouter],
+          unsafeAllow: ['constructor', 'state-variable-immutable'],
+          kind: 'uups',
+        }
+      );
+      await ledger.deployed();
+
+      console.log('Ledger deployed to:', ledger.address);
+    } else {
+      const ledger = await upgrades.upgradeProxy(proxyAddress, factory, {
+        constructorArgs: [networks?.[network.name].functionsRouter],
+        unsafeAllow: ['constructor'],
+        kind: 'uups',
+      });
+      const version = await (ledger as Ledger).getVersion();
+
+      console.log(`Ledger upgraded to version ${version} at ${proxyAddress}`);
+    }
+  });
+
+

@@ -90,23 +90,11 @@ This enables:
 
 1. **First protocol to bring ANY external data to limit orders** - not just prices
 2. **Hybrid architecture** - Off-chain efficiency with on-chain security
-3. **Real use cases** - Agricultural hedging, insurance, supply chain
-4. **Massive market** - $250B+ in weather-related losses annually
-5. **Working MVP** - Live demo with real weather data
 
 ## Technical Notes
 
 - Uses 1inch v4 (ask for docs when implementing fillOrder)
-- Weather data via Chainlink Functions (real weather APIs)
 - EIP-712 signatures for gasless order creation
 - Firebase for scalable off-chain storage
-
-## Demo Script
-
-1. Show Iowa farmer creating frost protection order
-2. Display current temperature (above freezing)
-3. Simulate temperature drop (or wait for real change)
-4. Show bot detecting condition and executing trade
-5. Emphasize economic value: "Just saved $50,000 in crop losses"
 
 Remember: You're not just building another DeFi tool - you're creating infrastructure for the $100 trillion global capital market to respond intelligently to real-world conditions.

@@ -9,32 +9,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TokenSelector } from "@/components/token-selector"
-import { YieldDisplay } from "@/components/yield-display"
 import { OrderPreview } from "@/components/order-preview"
 import { useAccount } from "wagmi";
 import { useChainId } from "wagmi";
-import { parseUnits, BrowserProvider } from "ethers";
-import { AlertCircle, Loader2 } from "lucide-react"
+import { BrowserProvider, ethers } from "ethers";
+import { AlertCircle, Loader2, Plus, X } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { getChainlinkPriceFeedAddress } from "@/lib/1inch-integration";
 import { createLimitOrder, signLimitOrder, submitOrderOnChain } from "@/lib/1inch-sdk-integration";
-import { createWeatherAwareLimitOrder, signLimitOrder as signWeatherOrder } from "@/lib/limit-order-builder";
+import { generateChainlinkFunction, validateAPIConditions, generatePredicateId } from "@/lib/chainlink-function-generator";
+import { createAPIConditionsPredicate } from "@/lib/predicate-encoder";
+
+interface APICondition {
+  endpoint: string
+  authType: "apiKey" | "bearer" | "none"
+  authValue: string
+  jsonPath: string
+  operator: ">" | "<" | "="
+  threshold: string
+}
 
 interface OrderForm {
   makerAsset: string
   takerAsset: string
   makerAmount: string
   takerAmount: string
-  // Yield conditions
-  yieldThreshold: string
-  aaveAsset: string
-  // Weather conditions
-  location: string
-  temperatureThreshold: string
-  temperatureComparison: "below" | "above"
-  conditionType: "yield" | "weather"
+  apiConditions: APICondition[]
+  logicOperator: "AND" | "OR"
 }
 
 export default function CreateOrderPage() {
@@ -45,23 +47,57 @@ export default function CreateOrderPage() {
   const [orderSigned, setOrderSigned] = useState(false)
   const [signedOrderData, setSignedOrderData] = useState<any>(null)
   const [priceFeed, setPriceFeed] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"yield" | "weather">("yield");
 
   const [form, setForm] = useState<OrderForm>({
     makerAsset: "",
     takerAsset: "",
     makerAmount: "",
     takerAmount: "",
-    yieldThreshold: "",
-    aaveAsset: "",
-    location: "",
-    temperatureThreshold: "32",
-    temperatureComparison: "below",
-    conditionType: "yield",
+    apiConditions: [
+      {
+        endpoint: "",
+        authType: "apiKey",
+        authValue: "",
+        jsonPath: "",
+        operator: ">",
+        threshold: ""
+      }
+    ],
+    logicOperator: "AND"
   })
 
-  const updateForm = (field: keyof OrderForm, value: string) => {
+  const updateForm = (field: keyof OrderForm, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const addAPICondition = () => {
+    setForm(prev => ({
+      ...prev,
+      apiConditions: [...prev.apiConditions, {
+        endpoint: "",
+        authType: "apiKey",
+        authValue: "",
+        jsonPath: "",
+        operator: ">",
+        threshold: ""
+      }]
+    }))
+  }
+
+  const removeAPICondition = (index: number) => {
+    setForm(prev => ({
+      ...prev,
+      apiConditions: prev.apiConditions.filter((_, i) => i !== index)
+    }))
+  }
+
+  const updateAPICondition = (index: number, field: keyof APICondition, value: string) => {
+    setForm(prev => ({
+      ...prev,
+      apiConditions: prev.apiConditions.map((condition, i) => 
+        i === index ? { ...condition, [field]: value } : condition
+      )
+    }))
   }
 
   // Update price feed when maker asset or network changes
@@ -83,22 +119,26 @@ export default function CreateOrderPage() {
       });
       return;
     }
-
-    // Update form based on active tab
-    form.conditionType = activeTab;
     
-    // Validate form based on condition type
+    // Validate form
     const baseFields = ["makerAsset", "takerAsset", "makerAmount", "takerAmount"];
-    const yieldFields = form.conditionType === "yield" ? ["yieldThreshold", "aaveAsset"] : [];
-    const weatherFields = form.conditionType === "weather" ? ["location"] : [];
-    const requiredFields = [...baseFields, ...yieldFields, ...weatherFields];
-    
-    const missingFields = requiredFields.filter((field) => !form[field as keyof OrderForm]);
+    const missingBaseFields = baseFields.filter((field) => !form[field as keyof OrderForm]);
 
-    if (missingFields.length > 0) {
+    if (missingBaseFields.length > 0) {
       toast({
         title: "Missing required fields",
-        description: `Please fill in: ${missingFields.join(", ")}`,
+        description: `Please fill in: ${missingBaseFields.join(", ")}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate API conditions
+    const validationErrors = validateAPIConditions(form.apiConditions);
+    if (validationErrors.length > 0) {
+      toast({
+        title: "Invalid API conditions",
+        description: validationErrors[0], // Show first error
         variant: "destructive",
       });
       return;
@@ -107,73 +147,75 @@ export default function CreateOrderPage() {
     setIsLoading(true);
 
     try {
-      let orderStruct;
-      let signature;
+      // Generate Chainlink Function from API conditions
+      const chainlinkFunctionCode = generateChainlinkFunction(
+        form.apiConditions,
+        form.logicOperator === "AND"
+      );
+      
+      // In production: Deploy predicate contract and get address
+      // For MVP demo, use a placeholder address
+      const predicateContractAddress = "0x1234567890123456789012345678901234567890"; // TODO: Deploy contract
+      
+      // Generate unique predicate ID for this configuration
+      const predicateId = generatePredicateId(
+        form.apiConditions,
+        form.logicOperator === "AND",
+        address
+      );
+      
+      // Create the predicate using the new encoding format
+      // This follows the pattern from your mentor's example
+      const encodedPredicate = createAPIConditionsPredicate(
+        predicateContractAddress,
+        predicateId,
+        form.apiConditions.map(c => ({
+          operator: c.operator,
+          threshold: c.threshold
+        })),
+        form.logicOperator === "AND"
+      );
+      
+      // Create order structure with dynamic predicate
+      const orderStruct = {
+        salt: ethers.hexlify(ethers.randomBytes(32)),
+        makerAsset: form.makerAsset,
+        takerAsset: form.takerAsset,
+        maker: address,
+        receiver: address,
+        allowedSender: ethers.ZeroAddress,
+        makingAmount: form.makerAmount,
+        takingAmount: form.takerAmount,
+        offsets: "0x",
+        interactions: "0x",
+        predicate: encodedPredicate, // Encoded predicate data
+        permit: "0x",
+        getMakingAmount: "0x",
+        getTakingAmount: "0x",
+        preInteraction: "0x",
+        postInteraction: "0x"
+      };
 
-      if (form.conditionType === "weather") {
-        // Convert Fahrenheit to Celsius * 10 for the contract
-        const fahrenheit = parseFloat(form.temperatureThreshold);
-        const celsius = (fahrenheit - 32) * 5 / 9;
-        const celsiusTimes10 = Math.round(celsius * 10);
-        
-        const { order, extension } = await createWeatherAwareLimitOrder(
-          form.makerAsset,
-          form.takerAsset,
-          form.makerAmount,
-          form.takerAmount,
-          form.location,
-          celsiusTimes10,
-          form.temperatureComparison === "below",
-          address,
-          address,
-          chainId || 1
-        );
-        
-        orderStruct = order;
-        
-        // Get the signer from wagmi/ethers
-        const provider = new BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        
-        // Sign the weather order
-        signature = await signWeatherOrder(orderStruct, signer, chainId || 1);
-      } else {
-        // Yield order (existing code)
-        const orderConfig = {
-          asset: form.makerAsset,
-          threshold: parseUnits(form.yieldThreshold, 27).toString(),
-          isBelowThreshold: true, 
-          isVariableBorrow: true,
-          withdrawAmount: form.makerAmount,
-          targetToken: form.takerAsset,
-          minOutputAmount: form.takerAmount,
-        };
-      // Replace with your actual deployed contract addresses
-      const ratePredicateAddress = "0x...";
-      const withdrawInteractionAddress = "0x...";
-        const makerAddress = address as string;
-        const receiverAddress = address as string;
-        orderStruct = createLimitOrder(
-          orderConfig,
-          ratePredicateAddress,
-          withdrawInteractionAddress,
-          makerAddress,
-          receiverAddress
-        );
+      // Get the signer from wagmi/ethers
+      const provider = new BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      
+      // Sign the order
+      const signature = await signLimitOrder(orderStruct, signer, chainId || 1);
 
-        // Get the signer from wagmi/ethers
-        const provider = new BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        // Sign the order
-        signature = await signLimitOrder(orderStruct, signer, chainId || 1);
-      }
-
-      setSignedOrderData({ ...orderStruct, signature, priceFeed });
+      setSignedOrderData({ 
+        ...orderStruct, 
+        signature, 
+        priceFeed, 
+        apiConditions: form.apiConditions,
+        chainlinkFunctionCode,
+        logicOperator: form.logicOperator
+      });
       setOrderSigned(true);
 
       toast({
         title: "Order signed successfully!",
-        description: "Your yield-aware limit order has been created and signed.",
+        description: "Your smart capital order has been created and signed.",
       });
     } catch (error) {
       toast({
@@ -218,12 +260,15 @@ export default function CreateOrderPage() {
         takerAsset: "",
         makerAmount: "",
         takerAmount: "",
-        yieldThreshold: "",
-        aaveAsset: "",
-        location: "",
-        temperatureThreshold: "32",
-        temperatureComparison: "below",
-        conditionType: activeTab,
+        apiConditions: [{
+          endpoint: "",
+          authType: "apiKey",
+          authValue: "",
+          jsonPath: "",
+          operator: ">",
+          threshold: ""
+        }],
+        logicOperator: "AND"
       })
 
       setOrderSigned(false)
@@ -245,7 +290,7 @@ export default function CreateOrderPage() {
       <div className="max-w-2xl mx-auto">
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>Please connect your wallet to create yield-aware limit orders.</AlertDescription>
+          <AlertDescription>Please connect your wallet to create smart capital orders.</AlertDescription>
         </Alert>
       </div>
     )
@@ -254,32 +299,18 @@ export default function CreateOrderPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold">Create Intelligent Order</h1>
-        <p className="text-muted-foreground">Set up limit orders triggered by real-world conditions</p>
+        <h1 className="text-3xl font-bold">Create Smart Capital Order</h1>
+        <p className="text-muted-foreground">Define real-world triggers for automatic capital allocation</p>
       </div>
 
-      <Tabs 
-        defaultValue="yield" 
-        className="space-y-6"
-        value={activeTab}
-        onValueChange={(value: string) => {
-          setActiveTab(value as "yield" | "weather");
-          updateForm("conditionType", value);
-        }}
-      >
-        <TabsList className="grid w-full grid-cols-2 max-w-[400px] mx-auto">
-          <TabsTrigger value="yield">Yield Conditions</TabsTrigger>
-          <TabsTrigger value="weather">Weather Conditions</TabsTrigger>
-        </TabsList>
-
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Order Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Parameters</CardTitle>
-              <CardDescription>Configure your intelligent limit order</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Order Form */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Order Parameters</CardTitle>
+            <CardDescription>Configure your intelligent limit order</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
             {/* Token Selection */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -324,86 +355,127 @@ export default function CreateOrderPage() {
 
             <Separator />
 
-            {/* Condition-specific fields */}
-            <TabsContent value="yield" className="space-y-4 mt-0">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">Yield Conditions</Badge>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Aave Asset Market</Label>
-                <Select value={form.aaveAsset} onValueChange={(value) => updateForm("aaveAsset", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Aave asset" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USDC">USDC</SelectItem>
-                    <SelectItem value="DAI">DAI</SelectItem>
-                    <SelectItem value="USDT">USDT</SelectItem>
-                    <SelectItem value="WETH">WETH</SelectItem>
-                    <SelectItem value="WBTC">WBTC</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Minimum Yield Threshold (%)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="e.g., 5.5"
-                  value={form.yieldThreshold}
-                  onChange={(e) => updateForm("yieldThreshold", e.target.value)}
-                />
-              </div>
-
-              {form.aaveAsset && <YieldDisplay asset={form.aaveAsset} />}
-            </TabsContent>
-
-            <TabsContent value="weather" className="space-y-4 mt-0">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">Weather Conditions</Badge>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Location</Label>
-                <Select value={form.location} onValueChange={(value) => updateForm("location", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Des Moines,IA">Des Moines, Iowa (Farming)</SelectItem>
-                    <SelectItem value="Miami,FL">Miami, Florida (Hurricanes)</SelectItem>
-                    <SelectItem value="Phoenix,AZ">Phoenix, Arizona (Drought)</SelectItem>
-                    <SelectItem value="Chicago,IL">Chicago, Illinois (Winter)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Temperature Condition</Label>
-                <div className="flex gap-2">
-                  <Select value={form.temperatureComparison} onValueChange={(value: "below" | "above") => updateForm("temperatureComparison", value)}>
-                    <SelectTrigger className="w-[120px]">
+            {/* API Conditions */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Badge variant="secondary">API Conditions</Badge>
+                {form.apiConditions.length > 1 && (
+                  <Select value={form.logicOperator} onValueChange={(value: "AND" | "OR") => updateForm("logicOperator", value)}>
+                    <SelectTrigger className="w-[100px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="below">Below</SelectItem>
-                      <SelectItem value="above">Above</SelectItem>
+                      <SelectItem value="AND">AND</SelectItem>
+                      <SelectItem value="OR">OR</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Input 
-                    type="number" 
-                    placeholder="32" 
-                    className="flex-1"
-                    value={form.temperatureThreshold}
-                    onChange={(e) => updateForm("temperatureThreshold", e.target.value)}
-                  />
-                  <span className="flex items-center text-sm text-muted-foreground">°F</span>
-                </div>
-                <p className="text-xs text-muted-foreground">Example: Below 32°F triggers frost protection</p>
+                )}
               </div>
-            </TabsContent>
+
+              {form.apiConditions.map((condition, index) => (
+                <Card key={index} className="p-4 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <Label>API Condition {index + 1}</Label>
+                    {form.apiConditions.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeAPICondition(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label className="text-xs">API Endpoint</Label>
+                      <Input
+                        placeholder="https://api.example.com/data"
+                        value={condition.endpoint}
+                        onChange={(e) => updateAPICondition(index, "endpoint", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Auth Type</Label>
+                        <Select 
+                          value={condition.authType} 
+                          onValueChange={(value: "apiKey" | "bearer" | "none") => updateAPICondition(index, "authType", value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="apiKey">API Key</SelectItem>
+                            <SelectItem value="bearer">Bearer Token</SelectItem>
+                            <SelectItem value="none">None</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {condition.authType !== "none" && (
+                        <div className="space-y-2">
+                          <Label className="text-xs">Auth Value</Label>
+                          <Input
+                            type="password"
+                            placeholder="Your API key"
+                            value={condition.authValue}
+                            onChange={(e) => updateAPICondition(index, "authValue", e.target.value)}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs">JSON Path</Label>
+                      <Input
+                        placeholder="data.value or data['rates']['inflation']"
+                        value={condition.jsonPath}
+                        onChange={(e) => updateAPICondition(index, "jsonPath", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Operator</Label>
+                        <Select 
+                          value={condition.operator} 
+                          onValueChange={(value: ">" | "<" | "=") => updateAPICondition(index, "operator", value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value=">">Greater than</SelectItem>
+                            <SelectItem value="<">Less than</SelectItem>
+                            <SelectItem value="=">Equal to</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">Threshold Value</Label>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={condition.threshold}
+                          onChange={(e) => updateAPICondition(index, "threshold", e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+
+              <Button
+                variant="outline"
+                onClick={addAPICondition}
+                className="w-full"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add API Condition
+              </Button>
+            </div>
 
             <Separator />
 
@@ -452,12 +524,26 @@ export default function CreateOrderPage() {
 
         {/* Order Preview */}
         <div className="space-y-6">
-          <YieldDisplay asset={form.aaveAsset || "USDC"} />
+          {/* Example Use Cases */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Example: JPY Hedging Strategy</CardTitle>
+              <CardDescription>Protect against currency devaluation</CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm space-y-2">
+              <p><strong>Condition 1:</strong> US Tariffs on Japanese cars &gt; 15%</p>
+              <p><strong>Condition 2:</strong> JPY Inflation &gt; 5%</p>
+              <p><strong>Logic:</strong> AND (both conditions must be true)</p>
+              <p><strong>Action:</strong> Convert 1M JPYC → USDC</p>
+              <p className="text-muted-foreground mt-2">
+                This protects companies trading with Japan from currency devaluation when economic indicators signal JPY weakness.
+              </p>
+            </CardContent>
+          </Card>
 
           {signedOrderData && <OrderPreview orderData={signedOrderData} />}
         </div>
       </div>
-      </Tabs>
     </div>
   )
 }
