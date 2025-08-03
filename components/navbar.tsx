@@ -1,54 +1,40 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { ConnectWallet } from "@/components/connect-wallet"
 
 export function Navbar() {
-  const pathname = usePathname()
-
-  const navigation = [
-    { name: "Home", href: "/" },
-    { name: "Create Order", href: "/create-order" },
-    { name: "Dashboard", href: "/dashboard" },
-  ]
-
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center space-x-8">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">T</span>
-              </div>
-              <span className="font-bold text-xl">TriggerFi</span>
+      <div className="container flex h-14 items-center">
+        <div className="mr-4 hidden md:flex">
+          <Link href="/" className="mr-6 flex items-center space-x-2">
+            <span className="hidden font-bold sm:inline-block">
+              TriggerFi
+            </span>
+          </Link>
+          <nav className="flex items-center space-x-6 text-sm font-medium">
+            <Link
+              href="/create-order"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+            >
+              Create Order
             </Link>
-
-            <div className="hidden md:flex items-center space-x-1">
-              {navigation.map((item) => (
-                <Link key={item.name} href={item.href}>
-                  <Button
-                    variant={pathname === item.href ? "default" : "ghost"}
-                    className={cn(
-                      "text-sm font-medium transition-colors",
-                      pathname === item.href
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {item.name}
-                  </Button>
-                </Link>
-              ))}
-            </div>
+            <Link
+              href="/dashboard"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+            >
+              Dashboard
+            </Link>
+          </nav>
+        </div>
+        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          <div className="w-full flex-1 md:w-auto md:flex-none">
           </div>
-
-          <div className="flex items-center space-x-4">
-            <ConnectWallet />
-          </div>
+          <nav className="flex items-center">
+            <ConnectButton />
+          </nav>
         </div>
       </div>
     </nav>
